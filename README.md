@@ -102,3 +102,9 @@ Además, la base de datos incluye:
 <img width="484" height="422" alt="{180107CA-F56A-4E8B-8EF3-46DBB50FD476}" src="https://github.com/user-attachments/assets/bdccb3d8-1ff5-4a39-a635-6bb608f4933e" />
 
 ## Modelo de clases y métodos
+SUEJETOS A CAMBIOS
+
+<img width="414" height="430" alt="{F1D5DEDA-4960-4647-B996-CBEC135FEC3C}" src="https://github.com/user-attachments/assets/b9d464f4-32e4-451b-89fe-8c799438adbe" />
+
+
+<img width="591" height="417" alt="{0589C5EA-F450-467C-9A45-C7174A8310B8}" src="https://github.com/user-attachments/assets/261f7cbe-86a6-4cee-b951-a9f3deeebba1" />
