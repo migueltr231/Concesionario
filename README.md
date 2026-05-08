@@ -65,7 +65,14 @@ El proyecto sigue una arquitectura por capas:
 - **Persistence / System:** Acceso a base de datos y tecnologías externas.
 
 ---
-
+⚙️ Tecnologías Utilizadas
+Java
+Spring Boot
+Oracle Database
+JPA / Hibernate
+Maven
+PowerDesigner
+---
 # 🗄️ Diseño de Base de Datos
 
 El sistema utiliza un modelo relacional que contempla:
@@ -105,6 +112,6 @@ Además, la base de datos incluye:
 SUEJETOS A CAMBIOS
 
 <img width="414" height="430" alt="{F1D5DEDA-4960-4647-B996-CBEC135FEC3C}" src="https://github.com/user-attachments/assets/b9d464f4-32e4-451b-89fe-8c799438adbe" />
-
-
+---
 <img width="591" height="417" alt="{0589C5EA-F450-467C-9A45-C7174A8310B8}" src="https://github.com/user-attachments/assets/261f7cbe-86a6-4cee-b951-a9f3deeebba1" />
+---
