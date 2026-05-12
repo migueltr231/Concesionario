@@ -1,0 +1,11 @@
+package edu.unicauca.dsantiago135.concesionaria;
+
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class ConcesionariaApplication {
+
+	public static void main(String[] args) {
+	}
+
+}

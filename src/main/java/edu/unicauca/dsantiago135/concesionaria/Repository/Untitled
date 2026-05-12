@@ -1,0 +1,166 @@
+REPOSITORY TEMPLATE
+===================
+
+#region ATTRIBUTES
+
+private final JdbcTemplate attJdbcTemplate;
+
+private final SimpleJdbcCall attSpRegisterX;
+private final SimpleJdbcCall attSpUpdateX;
+private final SimpleJdbcCall attSpGetX;
+
+#endregion
+
+
+#region CONSTRUCTOR
+
+public clsXRepository(JdbcTemplate prmJdbcTemplate) {
+
+    this.attJdbcTemplate = prmJdbcTemplate;
+
+    //CALLS PREPARADAS
+    this.attSpRegisterX = new SimpleJdbcCall(attJdbcTemplate)
+            .withProcedureName("sp_register_x");
+
+    this.attSpUpdateX = new SimpleJdbcCall(attJdbcTemplate)
+            .withProcedureName("sp_update_x");
+
+    this.attSpGetX = new SimpleJdbcCall(attJdbcTemplate)
+            .withProcedureName("sp_get_x");
+}
+
+#endregion
+
+
+#region REGISTER
+
+@Transactional
+public boolean opRegisterX(clsX prmX) {
+
+    //MAPEO OBJETO -> PARAMS
+    MapSqlParameterSource varParams =
+            opToParams(prmX);
+
+    //EJECUCIÓN SP
+    Map<String,Object> varResult =
+            attSpRegisterX.execute(varParams);
+
+    //OUT PARAMETER
+    int varResponse =
+            ((Number)varResult.get("P_RESULT"))
+            .intValue();
+
+    //VALIDACIÓN
+    if(varResponse == 0) {
+
+        throw new RuntimeException(
+                "Register failed");
+    }
+
+    return true;
+}
+
+#endregion
+
+
+#region UPDATE
+
+@Transactional
+public boolean opUpdateX(clsX prmX) {
+
+    MapSqlParameterSource varParams =
+            opToParams(prmX);
+
+    Map<String,Object> varResult =
+            attSpUpdateX.execute(varParams);
+
+    int varResponse =
+            ((Number)varResult.get("P_RESULT"))
+            .intValue();
+
+    if(varResponse == 0) {
+
+        throw new RuntimeException(
+                "Update failed");
+    }
+
+    return true;
+}
+
+#endregion
+
+
+#region GET ALL
+
+public List<clsX> opGetX() {
+
+    List<clsX> varList = new ArrayList<>();
+
+    //EJECUCIÓN SP
+    Map<String,Object> varResult =
+            attSpGetX.execute();
+
+    //CURSOR ORACLE
+    List<Map<String,Object>> varRows =
+            (List<Map<String,Object>>)
+            varResult.get("OUT_CURSOR");
+
+    //MAPEO DB -> OBJETO
+    for(Map<String,Object> varRow : varRows) {
+
+        varList.add(
+                opToObject(varRow));
+    }
+
+    return varList;
+}
+
+#endregion
+
+
+#region OBJECT -> PARAMS
+
+private MapSqlParameterSource opToParams(clsX prmX) {
+
+    return new MapSqlParameterSource()
+
+            .addValue("P_X_ID",
+                    prmX.getAttId())
+
+            .addValue("P_X_NAME",
+                    prmX.getAttName())
+
+            .addValue("P_X_STATE",
+                    prmX.getAttState());
+}
+
+#endregion
+
+
+#region DB -> OBJECT
+
+private clsX opToObject(
+        Map<String,Object> prmRow) {
+
+    clsX varX = new clsX();
+
+    //MAPEO
+    //ATRIBUTO CLASE <- COLUMNA DB
+
+    varX.setAttId(
+            ((Number)
+            prmRow.get("X_ID"))
+            .intValue());
+
+    varX.setAttName(
+            (String)
+            prmRow.get("X_NAME"));
+
+    varX.setAttState(
+            (String)
+            prmRow.get("X_STATE"));
+
+    return varX;
+}
+
+#endregion
