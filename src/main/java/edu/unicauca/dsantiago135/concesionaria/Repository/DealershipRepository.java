@@ -2,9 +2,12 @@ package edu.unicauca.dsantiago135.concesionaria.Repository;
 
 import java.util.Map;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.simple.SimpleJdbcCall;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
 import edu.unicauca.dsantiago135.concesionaria.Model.clsDealership;
@@ -59,17 +62,26 @@ private MapSqlParameterSource opToParams(clsDealership prmDealership) {
  *               donde la clave es el nombre del parámetro y el valor es de tipo {@link Object}
  * @return objeto de tipo {@link clsDealership} con los datos mapeados
  */
-private clsDealership opToObject(Map<String,Object> prmRow) {
+private clsDealership opToObject(ResultSet prmRow) throws SQLException {
         clsDealership varDealership = new clsDealership();
 
-        varDealership.setAttDealershipId(((Number)prmRow.get("DEA_ID")).intValue());
-        varDealership.setAttName((String)prmRow.get("DEA_NAME"));
-        varDealership.setAttState((String)prmRow.get("DEA_STATE"));
-        varDealership.setAttAddress((String)prmRow.get("DEA_ADDRESS"));
-        varDealership.setAttPhone((String)prmRow.get("DEA_PHONE"));
+        varDealership.setAttDealershipId(prmRow.getInt("DEA_ID"));
+        varDealership.setAttName(prmRow.getString("DEA_NAME"));
+        varDealership.setAttState(prmRow.getString("DEA_STATE"));
+        varDealership.setAttAddress(prmRow.getString("DEA_ADDRESS"));
+        varDealership.setAttPhone(prmRow.getString("DEA_PHONE"));
 
         return varDealership;
     }
+/**
+    * Sobrecarga para definir cómo convertir filas del cursor Oracle en objetos
+    * {@link clsDealership}.
+    *
+    * @return mapper reutilizable para consultas
+    */
+        private RowMapper<clsDealership> opDealershipRowMapper() {
+                return (rs, rowNum) ->opToObject(rs);
+                }
 //endregion
 
 //region PROCEDURES

@@ -3,9 +3,12 @@ package edu.unicauca.dsantiago135.concesionaria.Repository;
 import java.util.Date;
 import java.util.Map;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.simple.SimpleJdbcCall;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
 import edu.unicauca.dsantiago135.concesionaria.Model.clsCustomer;
@@ -45,14 +48,14 @@ public SaleRepository(JdbcTemplate prmJdbcTemplate) {
  */
 private MapSqlParameterSource opToParams(clsSale prmSale) {
         return new MapSqlParameterSource()
-                .addValue("P_SAL_ID",         prmSale.getAttSaleId())
+                .addValue("P_SALE_ID",         prmSale.getAttSaleId())
                 .addValue("P_CUS_ID",         prmSale.getAttCustomer().getAttCustomerId())
                 .addValue("P_EMP_ID",         prmSale.getAttEmployee().getAttEmployeeId())
                 .addValue("P_UNI_ID",         prmSale.getAttUnit().getAttUnitId())
-                .addValue("P_SAL_DATE_START", prmSale.getAttDateStart())
-                .addValue("P_SAL_PRICE",      prmSale.getAttPrice())
-                .addValue("P_SAL_STATUS",     prmSale.getAttStatus())
-                .addValue("P_SAL_DATE_END",   prmSale.getAttDateEnd());
+                .addValue("P_SALE_DATE_START", prmSale.getAttDateStart())
+                .addValue("P_SALE_PRICE",      prmSale.getAttPrice())
+                .addValue("P_SALE_STATUS",     prmSale.getAttStatus())
+                .addValue("P_SALE_DATE_END",   prmSale.getAttDateEnd());
 }   
 /**
 * Convierte el resultado de un procedimiento almacenado de Oracle en un objeto {@link clsSale}.
@@ -65,29 +68,38 @@ private MapSqlParameterSource opToParams(clsSale prmSale) {
 *               donde la clave es el nombre del parámetro y el valor es de tipo {@link Object}
 * @return objeto de tipo {@link clsSale} con los datos mapeados
 */
-private clsSale opToObject(Map<String, Object> prmRow) {
+private clsSale opToObject(ResultSet prmRow) throws SQLException{
         clsSale varSale = new clsSale();
 
-        varSale.setAttSaleId(((Number) prmRow.get("SAL_ID")).intValue());
+        varSale.setAttSaleId(prmRow.getInt("SALE_ID"));
 
         clsCustomer varCustomer = new clsCustomer();
-        varCustomer.setAttCustomerId(((Number) prmRow.get("CUS_ID")).intValue());
+        varCustomer.setAttCustomerId(prmRow.getInt("CUS_ID"));
         varSale.setAttCustomer(varCustomer);
 
         clsEmployee varEmployee = new clsEmployee();
-        varEmployee.setAttEmployeeId(((Number) prmRow.get("EMP_ID")).intValue());
+        varEmployee.setAttEmployeeId(prmRow.getInt("EMP_ID"));
         varSale.setAttEmployee(varEmployee);
 
         clsUnit varUnit = new clsUnit();
-        varUnit.setAttUnitId(((Number) prmRow.get("UNI_ID")).intValue());
+        varUnit.setAttUnitId((prmRow.getInt("UNI_ID")));
         varSale.setAttUnit(varUnit);
 
-        varSale.setAttDateStart((Date) prmRow.get("SAL_DATE_START"));
-        varSale.setAttPrice(((Number) prmRow.get("SAL_PRICE")).doubleValue());
-        varSale.setAttStatus((String) prmRow.get("SAL_STATUS"));
-        varSale.setAttDateEnd((Date) prmRow.get("SAL_DATE_END"));
+        varSale.setAttDateStart(prmRow.getDate("SALE_DATE_START"));
+        varSale.setAttPrice(prmRow.getDouble("SALE_PRICE"));
+        varSale.setAttStatus(prmRow.getString("SALE_STATUS"));
+        varSale.setAttDateEnd(prmRow.getDate("SALE_DATE_END"));
         return varSale;
 }
+    /**
+    * Sobrecarga para definir cómo convertir filas del cursor Oracle en objetos
+    * {@link clsCustomer}.
+    *
+    * @return mapper reutilizable para consultas
+    */
+    private RowMapper<clsSale> opSaleRowMapper() {
+        return (rs, rowNum) ->opToObject(rs);
+        }
 //endregion
 
 //region PROCEDURES

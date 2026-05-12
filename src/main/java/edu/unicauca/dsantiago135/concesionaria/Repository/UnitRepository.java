@@ -3,9 +3,12 @@ package edu.unicauca.dsantiago135.concesionaria.Repository;
 import java.util.Date;
 import java.util.Map;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.simple.SimpleJdbcCall;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
 import edu.unicauca.dsantiago135.concesionaria.Model.clsDealership;
@@ -65,28 +68,37 @@ private MapSqlParameterSource opToParams(clsUnit prmUnit) {
      *               donde la clave es el nombre del parámetro y el valor es de tipo {@link Object}
      * @return objeto de tipo {@link clsUnit} con los datos mapeados
      */
-private clsUnit opToObject(Map<String, Object> prmRow) {
+private clsUnit opToObject(ResultSet prmRow) throws SQLException{
         clsUnit varUnit = new clsUnit();
 
-        varUnit.setAttUnitId(((Number) prmRow.get("UNI_ID")).intValue());
+        varUnit.setAttUnitId(prmRow.getInt("UNIT_ID"));
 
         clsDealership varDealership = new clsDealership();
-        varDealership.setAttDealershipId(((Number) prmRow.get("DEA_ID")).intValue());
+        varDealership.setAttDealershipId(prmRow.getInt("DEA_ID"));
         varUnit.setAttDealership(varDealership);
 
         clsVehicle varVehicle = new clsVehicle();
-        varVehicle.setAttVehicleId(((Number) prmRow.get("VEH_ID")).intValue());
+        varVehicle.setAttVehicleId(prmRow.getInt("VEH_ID"));
         varUnit.setAttVehicle(varVehicle);
 
-        varUnit.setAttLicensePlate((String) prmRow.get("UNI_LICENSE_PLATE"));
-        varUnit.setAttColor((String) prmRow.get("UNI_COLOR"));
-        varUnit.setAttMileage(((Number) prmRow.get("UNI_MILEAGE")).intValue());
-        varUnit.setAttDateEntry((Date) prmRow.get("UNI_DATE_ENTRY"));
-        varUnit.setAttCondition((String) prmRow.get("UNI_CONDITION"));
-        varUnit.setAttStatus((String) prmRow.get("UNI_STATUS"));
+        varUnit.setAttLicensePlate(prmRow.getString("UNIT_LICENSE_PLATE"));
+        varUnit.setAttColor(prmRow.getString("UNIT_COLOR"));
+        varUnit.setAttMileage(prmRow.getInt("UNIT_MILEAGE"));
+        varUnit.setAttDateEntry(prmRow.getDate("UNIT_DATE_ENTRY"));
+        varUnit.setAttCondition(prmRow.getString("UNIT_CONDITION"));
+        varUnit.setAttStatus(prmRow.getString("UNIT_STATUS"));
 
         return varUnit;
 }
+    /**
+    * Sobrecarga para definir cómo convertir filas del cursor Oracle en objetos
+    * {@link clsUnit}.
+    *
+    * @return mapper reutilizable para consultas
+    */
+    private RowMapper<clsUnit> opUnitRowMapper() {
+        return (rs, rowNum) ->opToObject(rs);
+        }
 //endregion
 
 //region PROCEDURES

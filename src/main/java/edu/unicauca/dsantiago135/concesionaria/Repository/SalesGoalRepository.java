@@ -3,9 +3,12 @@ package edu.unicauca.dsantiago135.concesionaria.Repository;
 import java.util.Date;
 import java.util.Map;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.simple.SimpleJdbcCall;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
 import edu.unicauca.dsantiago135.concesionaria.Model.clsDealership;
@@ -42,7 +45,7 @@ public SalesGoalRepository(JdbcTemplate prmJdbcTemplate) {
  * @param prmSalesGoal objeto de tipo {@link clsSalesGoal} con los datos de la meta de ventas
  * @return {@link MapSqlParameterSource} con los parámetros mapeados para Oracle
  */
-private MapSqlParameterSource opToParams(clsSalesGoal prmSalesGoal) {
+        private MapSqlParameterSource opToParams(clsSalesGoal prmSalesGoal) {
         return new MapSqlParameterSource()
                 .addValue("P_SGL_ID",           prmSalesGoal.getAttSalesGoalId())
                 .addValue("P_EMP_ID",           prmSalesGoal.getAttEmployee().getAttEmployeeId())
@@ -64,24 +67,33 @@ private MapSqlParameterSource opToParams(clsSalesGoal prmSalesGoal) {
      *               donde la clave es el nombre del parámetro y el valor es de tipo {@link Object}
      * @return objeto de tipo {@link clsSalesGoal} con los datos mapeados
      */
-private clsSalesGoal opToObject(Map<String, Object> prmRow) {
+        private clsSalesGoal opToObject(ResultSet prmRow) throws SQLException {
         clsSalesGoal varSalesGoal = new clsSalesGoal();    
-        varSalesGoal.setAttSalesGoalId(((Number) prmRow.get("SGL_ID")).intValue());
+        varSalesGoal.setAttSalesGoalId(prmRow.getInt("SGL_ID"));
 
         clsEmployee varEmployee = new clsEmployee();
-        varEmployee.setAttEmployeeId(((Number) prmRow.get("EMP_ID")).intValue());
+        varEmployee.setAttEmployeeId(prmRow.getInt("EMP_ID"));
         varSalesGoal.setAttEmployee(varEmployee);    
         clsDealership varDealership = new clsDealership();
-        varDealership.setAttDealershipId(((Number) prmRow.get("DEA_ID")).intValue());
+        varDealership.setAttDealershipId(prmRow.getInt("DEA_ID"));
         varSalesGoal.setAttDealership(varDealership);
 
-        varSalesGoal.setAttGoalType((String) prmRow.get("SGL_GOAL_TYPE"));
-        varSalesGoal.setAttTargetValue(((Number) prmRow.get("SGL_TARGET_VALUE")).doubleValue());
-        varSalesGoal.setAttStartDate((Date) prmRow.get("SGL_START_DATE"));
-        varSalesGoal.setAttEndDate((Date) prmRow.get("SGL_END_DATE"));
-        varSalesGoal.setAttState((String) prmRow.get("SGL_STATE"));    
+        varSalesGoal.setAttGoalType(prmRow.getString("SGL_GOAL_TYPE"));
+        varSalesGoal.setAttTargetValue(prmRow.getDouble("SGL_TARGET_VALUE"));
+        varSalesGoal.setAttStartDate(prmRow.getDate("SGL_START_DATE"));
+        varSalesGoal.setAttEndDate(prmRow.getDate("SGL_END_DATE"));
+        varSalesGoal.setAttState(prmRow.getString("SGL_STATE")); 
         return varSalesGoal;
 }
+/**
+    * Sobrecarga para definir cómo convertir filas del cursor Oracle en objetos
+    * {@link clsSalesGoal}.
+    *
+    * @return mapper reutilizable para consultas
+    */
+        private RowMapper<clsSalesGoal> opSalesGoalRowMapper() {
+        return (rs, rowNum) ->opToObject(rs);
+        }
 //endregion
 
 //region PROCEDURES

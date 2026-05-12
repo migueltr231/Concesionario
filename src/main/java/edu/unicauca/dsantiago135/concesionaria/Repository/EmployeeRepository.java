@@ -3,9 +3,12 @@ package edu.unicauca.dsantiago135.concesionaria.Repository;
 import java.util.Date;
 import java.util.Map;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.simple.SimpleJdbcCall;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
 import edu.unicauca.dsantiago135.concesionaria.Model.clsDealership;
@@ -64,23 +67,32 @@ return new MapSqlParameterSource()
  *               donde la clave es el nombre del parámetro y el valor es de tipo {@link Object}
  * @return objeto de tipo {@link clsEmployee} con los datos mapeados
  */
-private clsEmployee opToObject(Map<String,Object> prmRow) {
+private clsEmployee opToObject(ResultSet prmRow) throws SQLException{
         clsEmployee varEmployee = new clsEmployee();
 
-        varEmployee.setAttEmployeeId(((Number)prmRow.get("EMP_ID")).intValue());
+        varEmployee.setAttEmployeeId(prmRow.getInt("EMP_ID"));
 
         clsDealership varDealership = new clsDealership();
-        varDealership.setAttDealershipId(((Number) prmRow.get("DEA_ID")).intValue());
+        varDealership.setAttDealershipId(prmRow.getInt("DEA_ID"));
         varEmployee.setAttDealership(varDealership);
 
-        varEmployee.setAttName((String)prmRow.get("EMP_NAME"));
-        varEmployee.setAttPhone((String)prmRow.get("EMP_PHONE"));
-        varEmployee.setAttRole((String)prmRow.get("EMP_ROLE"));
-        varEmployee.setAttSalary(((Number)prmRow.get("EMP_SALARY")).doubleValue());
-        varEmployee.setAttState((String)prmRow.get("EMP_STATE"));
-        varEmployee.setAttHireDate((Date)prmRow.get("EMP_HIRE_DATE"));
+        varEmployee.setAttName(prmRow.getString("EMP_NAME"));
+        varEmployee.setAttPhone(prmRow.getString("EMP_PHONE"));
+        varEmployee.setAttRole(prmRow.getString("EMP_ROLE"));
+        varEmployee.setAttSalary(prmRow.getDouble("EMP_SALARY"));
+        varEmployee.setAttState(prmRow.getString("EMP_STATE"));
+        varEmployee.setAttHireDate(prmRow.getDate("EMP_HIRE_DATE"));
         return varEmployee;
 }
+    /**
+    * Sobrecarga para definir cómo convertir filas del cursor Oracle en objetos
+    * {@link clsEmployee}.
+    *
+    * @return mapper reutilizable para consultas
+    */
+    private RowMapper<clsEmployee> opEmployeeRowMapper() {
+        return (rs, rowNum) ->opToObject(rs);
+        }
 //endregion
 
 //region PROCEDURES

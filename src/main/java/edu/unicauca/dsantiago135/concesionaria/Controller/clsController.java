@@ -1,15 +1,20 @@
 package edu.unicauca.dsantiago135.concesionaria.Controller;
 
+import org.springframework.stereotype.Component;
+
 import edu.unicauca.dsantiago135.concesionaria.Model.*;
+import edu.unicauca.dsantiago135.concesionaria.Service.*;
+
 import java.util.Date;
 import java.util.List;
 
+@Component
 public class clsController {
 
-    private static clsController attInstance;
-    public static clsController opGetInstance() {
-        if (attInstance != null) return attInstance ;
-        return attInstance = new clsController();
+    private final CustomerService attCustomerService;
+
+    public clsController(CustomerService prmCustomerService) {
+        this.attCustomerService = prmCustomerService;
     }
 
     
@@ -92,10 +97,9 @@ public class clsController {
     
     return null;
     }
-    
-    public clsCustomer opGetCustomerBy(String prmOUID) {
-    
-    return null;
+
+    public clsCustomer opGetCustomerBy(int prmOUID) {
+        return attCustomerService.opGetCustomerBy(prmOUID);
     }
     
     public clsUnit opGetUnitBy(String prmOUID) {

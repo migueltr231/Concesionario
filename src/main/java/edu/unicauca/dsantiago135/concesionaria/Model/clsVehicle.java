@@ -8,7 +8,6 @@ public class clsVehicle {
 //region Attributes
     private int attVehicleId;
 
-
     private String attBrand;
     private String attModel;
     private int attYear;
