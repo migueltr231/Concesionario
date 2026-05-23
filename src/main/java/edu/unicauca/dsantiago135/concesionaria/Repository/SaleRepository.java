@@ -1,6 +1,5 @@
 package edu.unicauca.dsantiago135.concesionaria.Repository;
 
-import java.util.Date;
 import java.util.Map;
 
 import java.sql.ResultSet;
@@ -19,91 +18,149 @@ import edu.unicauca.dsantiago135.concesionaria.Model.clsUnit;
 @Repository
 public class SaleRepository {
 
-//region ATTRIBUTES
-private final JdbcTemplate attJdbcTemplate;
+	// region ATTRIBUTES
+	private final JdbcTemplate attJdbcTemplate;
 
-private final SimpleJdbcCall attSpRegisterX;
-private final SimpleJdbcCall attSpUpdateX;
-private final SimpleJdbcCall attSpGetX;
-//endregion
+	private static final String attPkg = "PKG_SALE";
+	private final SimpleJdbcCall attSpRegisterSale;
+	private final SimpleJdbcCall attSpRegisterReservation;
+	private final SimpleJdbcCall attSpCompleteReservation;
+	private final SimpleJdbcCall attSpCancelReservation;
+	private final SimpleJdbcCall attFnSaleExist;
+	private final SimpleJdbcCall attFnGetSaleById;
+	private final SimpleJdbcCall attFnGetAllSales;
+	private final SimpleJdbcCall attFnGetSalesByStatus;
 
-//region CONSTRUCTOR
-public SaleRepository(JdbcTemplate prmJdbcTemplate) {
-//Conexion 
-        this.attJdbcTemplate = prmJdbcTemplate;
-//Calls to procedures
-        this.attSpRegisterX = new SimpleJdbcCall(attJdbcTemplate).withProcedureName("sp_register_x");
-        this.attSpUpdateX = new SimpleJdbcCall(attJdbcTemplate).withProcedureName("sp_update_x");
-        this.attSpGetX = new SimpleJdbcCall(attJdbcTemplate).withProcedureName("sp_get_x");
-}
-//endregion
+	// endregion
 
-//region MAPPING
-/**
- * Convierte un objeto {@link clsSale} en un {@link MapSqlParameterSource}
- * listo para ser enviado como parámetros a un procedimiento almacenado de Oracle.
- *
- * @param prmSale objeto de tipo {@link clsSale} con los datos de la venta
- * @return {@link MapSqlParameterSource} con los parámetros mapeados para Oracle
- */
-private MapSqlParameterSource opToParams(clsSale prmSale) {
-        return new MapSqlParameterSource()
-                .addValue("P_SALE_ID",         prmSale.getAttSaleId())
-                .addValue("P_CUS_ID",         prmSale.getAttCustomer().getAttCustomerId())
-                .addValue("P_EMP_ID",         prmSale.getAttEmployee().getAttEmployeeId())
-                .addValue("P_UNI_ID",         prmSale.getAttUnit().getAttUnitId())
-                .addValue("P_SALE_DATE_START", prmSale.getAttDateStart())
-                .addValue("P_SALE_PRICE",      prmSale.getAttPrice())
-                .addValue("P_SALE_STATUS",     prmSale.getAttStatus())
-                .addValue("P_SALE_DATE_END",   prmSale.getAttDateEnd());
-}   
-/**
-* Convierte el resultado de un procedimiento almacenado de Oracle en un objeto {@link clsSale}.
-* <p>
-* El {@link Map} de entrada corresponde a los parámetros de salida retornados
-* por {@link org.springframework.jdbc.core.simple.SimpleJdbcCall}.
-* </p>
-*
-* @param prmRow {@link Map} con las columnas y valores retornados por Oracle,
-*               donde la clave es el nombre del parámetro y el valor es de tipo {@link Object}
-* @return objeto de tipo {@link clsSale} con los datos mapeados
-*/
-private clsSale opToObject(ResultSet prmRow) throws SQLException{
-        clsSale varSale = new clsSale();
+	// region CONSTRUCTOR
+	public SaleRepository(JdbcTemplate prmJdbcTemplate) {
+		// Conexion
+		this.attJdbcTemplate = prmJdbcTemplate;
+		// Calls to procedures
+		this.attSpRegisterSale = new SimpleJdbcCall(attJdbcTemplate).withCatalogName(attPkg)
+				.withProcedureName("SP_REGISTER_SALE");
+		this.attSpRegisterReservation = new SimpleJdbcCall(attJdbcTemplate).withCatalogName(attPkg)
+				.withProcedureName("SP_REGISTER_RESERVATION");
+		this.attSpCompleteReservation = new SimpleJdbcCall(attJdbcTemplate).withCatalogName(attPkg)
+				.withProcedureName("SP_COMPLETE_RESERVATION");
+		this.attSpCancelReservation = new SimpleJdbcCall(attJdbcTemplate).withCatalogName(attPkg)
+				.withProcedureName("SP_CANCEL_RESERVATION");
+		this.attFnSaleExist = new SimpleJdbcCall(attJdbcTemplate).withCatalogName(attPkg)
+				.withFunctionName("FN_SALE_EXIST");
+		this.attFnGetSaleById = new SimpleJdbcCall(attJdbcTemplate).withCatalogName(attPkg)
+				.withFunctionName("FN_GET_SALE_BY_ID");
+		this.attFnGetSalesByStatus = new SimpleJdbcCall(attJdbcTemplate).withCatalogName(attPkg)
+				.withFunctionName("FN_GET_SALES_BY_STATUS").returningResultSet("return",opSaleRowMapper());
+		this.attFnGetAllSales = new SimpleJdbcCall(attJdbcTemplate).withCatalogName(attPkg)
+				.withFunctionName("FN_GET_ALL_SALES").returningResultSet("return",opSaleRowMapper());
+	}
+	// endregion
 
-        varSale.setAttSaleId(prmRow.getInt("SALE_ID"));
+	// region MAPPING
+	/**
+	 * Convierte un objeto {@link clsSale} en un {@link MapSqlParameterSource}
+	 * listo para ser enviado como parámetros a un procedimiento almacenado de
+	 * Oracle.
+	 *
+	 * @param prmSale objeto de tipo {@link clsSale} con los datos de la venta
+	 * @return {@link MapSqlParameterSource} con los parámetros mapeados para Oracle
+	 */
+	private MapSqlParameterSource opToParams(clsSale prmSale) {
+		return new MapSqlParameterSource()
+				.addValue("P_SALE_ID", prmSale.getAttSaleId())
+				.addValue("P_CUS_ID", prmSale.getAttCustomer().getAttCustomerId())
+				.addValue("P_EMP_ID", prmSale.getAttEmployee().getAttEmployeeId())
+				.addValue("P_UNI_ID", prmSale.getAttUnit().getAttUnitId())
+				.addValue("P_SALE_DATE_START", prmSale.getAttDateStart())
+				.addValue("P_SALE_PRICE", prmSale.getAttPrice())
+				.addValue("P_SALE_STATUS", prmSale.getAttStatus())
+				.addValue("P_SALE_DATE_END", prmSale.getAttDateEnd());
+	}
 
-        clsCustomer varCustomer = new clsCustomer();
-        varCustomer.setAttCustomerId(prmRow.getInt("CUS_ID"));
-        varSale.setAttCustomer(varCustomer);
+	/**
+	 * Convierte el resultado de un procedimiento almacenado de Oracle en un objeto
+	 * {@link clsSale}.
+	 * <p>
+	 * El {@link Map} de entrada corresponde a los parámetros de salida retornados
+	 * por {@link org.springframework.jdbc.core.simple.SimpleJdbcCall}.
+	 * </p>
+	 *
+	 * @param prmRow {@link Map} con las columnas y valores retornados por Oracle,
+	 *               donde la clave es el nombre del parámetro y el valor es de tipo
+	 *               {@link Object}
+	 * @return objeto de tipo {@link clsSale} con los datos mapeados
+	 */
+	private clsSale opToObject(ResultSet prmRow) throws SQLException {
+		clsSale varSale = new clsSale();
 
-        clsEmployee varEmployee = new clsEmployee();
-        varEmployee.setAttEmployeeId(prmRow.getInt("EMP_ID"));
-        varSale.setAttEmployee(varEmployee);
+		varSale.setAttSaleId(prmRow.getInt("SALE_ID"));
 
-        clsUnit varUnit = new clsUnit();
-        varUnit.setAttUnitId((prmRow.getInt("UNI_ID")));
-        varSale.setAttUnit(varUnit);
+		clsCustomer varCustomer = new clsCustomer();
+		varCustomer.setAttCustomerId(prmRow.getInt("CUS_ID"));
+		varSale.setAttCustomer(varCustomer);
 
-        varSale.setAttDateStart(prmRow.getDate("SALE_DATE_START"));
-        varSale.setAttPrice(prmRow.getDouble("SALE_PRICE"));
-        varSale.setAttStatus(prmRow.getString("SALE_STATUS"));
-        varSale.setAttDateEnd(prmRow.getDate("SALE_DATE_END"));
-        return varSale;
-}
-    /**
-    * Sobrecarga para definir cómo convertir filas del cursor Oracle en objetos
-    * {@link clsCustomer}.
-    *
-    * @return mapper reutilizable para consultas
-    */
-    private RowMapper<clsSale> opSaleRowMapper() {
-        return (rs, rowNum) ->opToObject(rs);
-        }
-//endregion
+		clsEmployee varEmployee = new clsEmployee();
+		varEmployee.setAttEmployeeId(prmRow.getInt("EMP_ID"));
+		varSale.setAttEmployee(varEmployee);
 
-//region PROCEDURES
+		clsUnit varUnit = new clsUnit();
+		varUnit.setAttUnitId((prmRow.getInt("UNI_ID")));
+		varSale.setAttUnit(varUnit);
 
-//endregion
+		varSale.setAttDateStart(prmRow.getDate("SALE_DATE_START"));
+		varSale.setAttPrice(prmRow.getDouble("SALE_PRICE"));
+		varSale.setAttStatus(prmRow.getString("SALE_STATUS"));
+		varSale.setAttDateEnd(prmRow.getDate("SALE_DATE_END"));
+		return varSale;
+	}
+
+	/**
+	 * Sobrecarga para definir cómo convertir filas del cursor Oracle en objetos
+	 * {@link clsSale}.
+	 *
+	 * @return mapper reutilizable para consultas
+	 */
+	private RowMapper<clsSale> opSaleRowMapper() {
+		return (rs, rowNum) -> opToObject(rs);
+	}
+
+	/**
+	 * Convierte un entero en un parámetro para Oracle.
+	 *
+	 * @param prmId Id de la venta
+	 * @return parámetros compatibles con el procedure
+	 */
+	private MapSqlParameterSource opToId(int prmId){
+		return new MapSqlParameterSource().addValue("P_SALE_ID", prmId);
+	}
+	// endregion
+
+	// region PROCEDURES
+	public void opRegisterSale(){
+
+	}
+	public void opRegisterReservation(){
+
+	}
+	public void opCompleteReservation(){
+
+	}
+	public void opCancelReservation(){
+
+	}
+	public void opSaleExist(){
+
+	}
+	public void opGetSaleById(){
+
+	}
+	public void opGetAllSales(){
+
+	}
+	public void opGetSalesByStatus(){
+
+	}
+	// endregion
 
 }

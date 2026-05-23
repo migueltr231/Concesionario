@@ -15,6 +15,6 @@ public class CustomerService {
     }
 
     public clsCustomer opGetCustomerBy(int prmId) {
-        return attCustomerRepository.opGetCustomerBy(prmId);
+        return null;
     }
 }
