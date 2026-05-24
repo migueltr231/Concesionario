@@ -1,7 +1,8 @@
 package edu.unicauca.dsantiago135.concesionaria.Repository;
 
+import java.util.List;
 import java.util.Map;
-
+import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -10,6 +11,11 @@ import org.springframework.jdbc.core.simple.SimpleJdbcCall;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
+import edu.unicauca.dsantiago135.concesionaria.Error.excDatabaseException;
+import edu.unicauca.dsantiago135.concesionaria.Error.excDuplicateDataException;
+import edu.unicauca.dsantiago135.concesionaria.Error.excNotFoundException;
+import edu.unicauca.dsantiago135.concesionaria.Error.excOperationNotAllowedException;
+import edu.unicauca.dsantiago135.concesionaria.Error.excValidationException;
 import edu.unicauca.dsantiago135.concesionaria.Model.clsCustomer;
 import edu.unicauca.dsantiago135.concesionaria.Model.clsEmployee;
 import edu.unicauca.dsantiago135.concesionaria.Model.clsSale;
@@ -71,7 +77,7 @@ public class SaleRepository {
 				.addValue("P_SALE_ID", prmSale.getAttSaleId())
 				.addValue("P_CUS_ID", prmSale.getAttCustomer().getAttCustomerId())
 				.addValue("P_EMP_ID", prmSale.getAttEmployee().getAttEmployeeId())
-				.addValue("P_UNI_ID", prmSale.getAttUnit().getAttUnitId())
+				.addValue("P_UNIT_ID", prmSale.getAttUnit().getAttUnitId())
 				.addValue("P_SALE_DATE_START", prmSale.getAttDateStart())
 				.addValue("P_SALE_PRICE", prmSale.getAttPrice())
 				.addValue("P_SALE_STATUS", prmSale.getAttStatus())
@@ -105,7 +111,7 @@ public class SaleRepository {
 		varSale.setAttEmployee(varEmployee);
 
 		clsUnit varUnit = new clsUnit();
-		varUnit.setAttUnitId((prmRow.getInt("UNI_ID")));
+		varUnit.setAttUnitId((prmRow.getInt("UNIT_ID")));
 		varSale.setAttUnit(varUnit);
 
 		varSale.setAttDateStart(prmRow.getDate("SALE_DATE_START"));
@@ -137,29 +143,64 @@ public class SaleRepository {
 	// endregion
 
 	// region PROCEDURES
-	public void opRegisterSale(){
-
+	public void opRegisterSale(clsSale prmSale)throws excDatabaseException, excDuplicateDataException, excValidationException, excOperationNotAllowedException{
+		attSpRegisterSale.execute(opToParams(prmSale));
 	}
-	public void opRegisterReservation(){
-
+	
+	public void opRegisterReservation(clsSale prmSale)throws excDatabaseException, excDuplicateDataException, excValidationException, excOperationNotAllowedException{
+		attSpRegisterReservation.execute(opToParams(prmSale));
 	}
-	public void opCompleteReservation(){
-
+	
+	public void opCompleteReservation(int prmId)throws excDatabaseException, excNotFoundException, excValidationException{
+		attSpCompleteReservation.execute(opToId(prmId));
 	}
-	public void opCancelReservation(){
-
+	
+	public void opCancelReservation(int prmId)throws excDatabaseException, excNotFoundException, excValidationException{
+		attSpCancelReservation.execute(opToId(prmId));
 	}
-	public void opSaleExist(){
-
+	
+	public boolean opSaleExist(int prmId)throws excDatabaseException{
+		Boolean varResult = attFnSaleExist.executeFunction(Boolean.class,opToId(prmId));
+		return Boolean.TRUE.equals(varResult);
 	}
-	public void opGetSaleById(){
-
+	
+	public clsSale opGetSaleById(int prmId)throws excDatabaseException, excNotFoundException{
+		clsSale varSale = new clsSale();
+		Map<String, Object> varResult = attFnGetSaleById.execute(opToId(prmId));
+		@SuppressWarnings("unchecked")
+		Map<String, Object> varMapSale = (Map<String, Object>) varResult.get("return");
+		if(varMapSale == null )return null;
+		varSale.setAttSaleId(((Number)(varMapSale.get("SALE_ID"))).intValue());
+		clsCustomer varCustomer = new clsCustomer();
+		varCustomer.setAttCustomerId(((Number)(varMapSale.get("CUS_ID"))).intValue());
+		clsEmployee varEmployee = new clsEmployee();
+		varEmployee.setAttEmployeeId(((Number)(varMapSale.get("EMP_ID"))).intValue());
+		clsUnit varUnit = new clsUnit();
+		varUnit.setAttUnitId(((Number)(varMapSale.get("UNIT_ID"))).intValue());
+		varSale.setAttEmployee(varEmployee);
+		varSale.setAttCustomer(varCustomer);
+		varSale.setAttUnit(varUnit);
+		varSale.setAttDateEnd((Date)(varMapSale.get("SALE_DATE_END")));
+		varSale.setAttDateStart((Date)(varMapSale.get("SALE_DATE_START")));
+		varSale.setAttStatus((String)(varMapSale.get("SALE_STATUS")));
+		varSale.setAttPrice(((Number)(varMapSale.get("SALE_PRICE"))).doubleValue());
+		return varSale;
 	}
-	public void opGetAllSales(){
-
+	
+	public List<clsSale> opGetAllSales()throws excDatabaseException{
+		Map<String, Object> varResult = attFnGetAllSales.execute();
+		@SuppressWarnings("unchecked")
+		List<clsSale> varSales = (List<clsSale>) varResult.get("return");
+		return varSales != null? varSales: List.of();
 	}
-	public void opGetSalesByStatus(){
-
+	
+	public List<clsSale> opGetSalesByStatus(String prmStatus)throws excDatabaseException, excValidationException{
+		MapSqlParameterSource varParams = new MapSqlParameterSource();
+		varParams.addValue("P_SALE_STATUS", prmStatus);
+		Map<String, Object> varResult = attFnGetSalesByStatus.execute(varParams);
+		@SuppressWarnings("unchecked")
+		List<clsSale> varSales = (List<clsSale>) varResult.get("return");
+		return varSales != null? varSales: List.of();
 	}
 	// endregion
 

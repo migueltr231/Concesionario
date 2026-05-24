@@ -1,7 +1,8 @@
 package edu.unicauca.dsantiago135.concesionaria.Repository;
 
+import java.util.List;
 import java.util.Map;
-
+import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -10,6 +11,10 @@ import org.springframework.jdbc.core.simple.SimpleJdbcCall;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
+import edu.unicauca.dsantiago135.concesionaria.Error.excDatabaseException;
+import edu.unicauca.dsantiago135.concesionaria.Error.excDuplicateDataException;
+import edu.unicauca.dsantiago135.concesionaria.Error.excNotFoundException;
+import edu.unicauca.dsantiago135.concesionaria.Error.excValidationException;
 import edu.unicauca.dsantiago135.concesionaria.Model.clsDealership;
 import edu.unicauca.dsantiago135.concesionaria.Model.clsUnit;
 import edu.unicauca.dsantiago135.concesionaria.Model.clsVehicle;
@@ -63,15 +68,15 @@ public class UnitRepository {
 	 */
 	private MapSqlParameterSource opToParams(clsUnit prmUnit) {
 		return new MapSqlParameterSource()
-				.addValue("P_UNI_ID", prmUnit.getAttUnitId())
+				.addValue("P_UNIT_ID", prmUnit.getAttUnitId())
 				.addValue("P_DEA_ID", prmUnit.getAttDealership().getAttDealershipId())
 				.addValue("P_VEH_ID", prmUnit.getAttVehicle().getAttVehicleId())
-				.addValue("P_UNI_LICENSE_PLATE", prmUnit.getAttLicensePlate())
-				.addValue("P_UNI_COLOR", prmUnit.getAttColor())
-				.addValue("P_UNI_MILEAGE", prmUnit.getAttMileage())
-				.addValue("P_UNI_DATE_ENTRY", prmUnit.getAttDateEntry())
-				.addValue("P_UNI_CONDITION", prmUnit.getAttCondition())
-				.addValue("P_UNI_STATUS", prmUnit.getAttStatus());
+				.addValue("P_UNIT_LICENSE_PLATE", prmUnit.getAttLicensePlate())
+				.addValue("P_UNIT_COLOR", prmUnit.getAttColor())
+				.addValue("P_UNIT_MILEAGE", prmUnit.getAttMileage())
+				.addValue("P_UNIT_DATE_ENTRY", prmUnit.getAttDateEntry())
+				.addValue("P_UNIT_CONDITION", prmUnit.getAttCondition())
+				.addValue("P_UNIT_STATUS", prmUnit.getAttStatus());
 	}
 
 	/**
@@ -127,31 +132,69 @@ public class UnitRepository {
 	 * @return parámetros compatibles con el procedure
 	 */
 	private MapSqlParameterSource opToId(int prmId){
-		return new MapSqlParameterSource().addValue("P_UNI_ID", prmId);
+		return new MapSqlParameterSource().addValue("P_UNIT_ID", prmId);
 	}
 	// endregion
 
 	// region PROCEDURES
-	public void opRegisterUnit(){
-
+	public void opRegisterUnit(clsUnit prmUnit)throws excDatabaseException, excDuplicateDataException, excValidationException{
+		attSpRegisterUnit.execute(opToParams(prmUnit));
 	}
-	public void opUpdateUnit(){
-
+	
+	public void opUpdateUnit(clsUnit prmUnit)throws excDatabaseException, excNotFoundException, excValidationException{
+		attSpUpdateUnit.execute(opToParams(prmUnit));
 	}
-	public void opUpdateUnitStatus(){
-
+	
+	public void opUpdateUnitStatus(int prmId, String prmStatus)throws excDatabaseException, excNotFoundException, excValidationException{
+		MapSqlParameterSource varParams = new MapSqlParameterSource();
+		varParams.addValue("P_UNIT_ID", prmId);
+		varParams.addValue("P_UNIT_STATUS", prmStatus);
+		attSpUpdateUnitStatus.execute(varParams);
 	}
-	public void opUnitExist(){
-
+	
+	public boolean opUnitExist(int prmId)throws excDatabaseException{
+		Boolean varResult = attFnUnitExist.executeFunction(Boolean.class,opToId(prmId));
+		return Boolean.TRUE.equals(varResult);
 	}
-	public void opGetUnitById(){
+	
+	public clsUnit opGetUnitById(int prmId)throws excDatabaseException, excNotFoundException{
+		clsUnit varUnit = new clsUnit();
+		Map<String, Object> varResult = attFnGetUnitById.execute(opToId(prmId));
+		@SuppressWarnings("unchecked")
+		Map<String, Object> varMapUnit = (Map<String,Object>) varResult.get("return");
+		if(varMapUnit == null )return null;
+		varUnit.setAttUnitId(((Number) varMapUnit.get("UNIT_ID")).intValue());
+		clsDealership varDealership = new clsDealership();
+		varDealership.setAttDealershipId(((Number) varMapUnit.get("DEA_ID")).intValue());
+		varUnit.setAttDealership(varDealership);
 
+		clsVehicle varVehicle = new clsVehicle();
+		varVehicle.setAttVehicleId(((Number) varMapUnit.get("VEH_ID")).intValue());
+		varUnit.setAttVehicle(varVehicle);
+
+		varUnit.setAttLicensePlate((String) varMapUnit.get("UNIT_LICENSE_PLATE"));
+		varUnit.setAttColor((String) varMapUnit.get("UNIT_COLOR"));
+		varUnit.setAttMileage(((Number) varMapUnit.get("UNIT_MILEAGE")).intValue());
+		varUnit.setAttDateEntry((Date) varMapUnit.get("UNIT_DATE_ENTRY"));
+		varUnit.setAttCondition((String) varMapUnit.get("UNIT_CONDITION"));
+		varUnit.setAttStatus((String) varMapUnit.get("UNIT_STATUS"));
+		return varUnit;
 	}
-	public void opGetAllUnits(){
-
+	
+	public List<clsUnit> opGetAllUnits()throws excDatabaseException{
+		Map<String, Object> varResult = attFnGetAllUnits.execute();
+		@SuppressWarnings("unchecked")
+		List<clsUnit> varUnite = (List<clsUnit>) varResult.get("return");
+		return varUnite != null? varUnite: List.of();
 	}
-	public void opGetUnitsByStatus(){
-
+	
+	public List<clsUnit> opGetUnitsByStatus(String prmStatus)throws excDatabaseException, excValidationException{
+		MapSqlParameterSource varParams = new MapSqlParameterSource();
+		varParams.addValue("P_UNIT_STATUS", prmStatus);
+		Map<String, Object> varResult = attFnGetUnitsByStatus.execute(varParams);
+		@SuppressWarnings("unchecked")
+		List<clsUnit> varUnite = (List<clsUnit>) varResult.get("return");
+		return varUnite != null? varUnite: List.of();
 	}
 	// endregion
 

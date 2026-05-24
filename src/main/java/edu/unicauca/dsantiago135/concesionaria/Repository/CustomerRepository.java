@@ -13,7 +13,6 @@ import org.springframework.stereotype.Repository;
 
 import edu.unicauca.dsantiago135.concesionaria.Error.excDatabaseException;
 import edu.unicauca.dsantiago135.concesionaria.Error.excDuplicateDataException;
-import edu.unicauca.dsantiago135.concesionaria.Error.excInactiveStateException;
 import edu.unicauca.dsantiago135.concesionaria.Error.excNotFoundException;
 import edu.unicauca.dsantiago135.concesionaria.Error.excOperationNotAllowedException;
 import edu.unicauca.dsantiago135.concesionaria.Error.excValidationException;
@@ -135,7 +134,7 @@ public class CustomerRepository {
 		Map<String, Object> varResult =attFnGetCustomerById.execute(opToId(prmId));
 		@SuppressWarnings("unchecked")
 		Map<String, Object> varCustomerMap = (Map<String, Object>) varResult.get("return");
-		if (varCustomerMap == null) {return null;}
+		if(varCustomerMap == null )return null;
 		clsCustomer varCustomer = new clsCustomer();
 		varCustomer.setAttCustomerId(((Number) varCustomerMap.get("CUS_ID")).intValue());
 		varCustomer.setAttName((String) varCustomerMap.get("CUS_NAME"));

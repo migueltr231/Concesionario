@@ -144,7 +144,7 @@ public class DealershipRepository {
 		Map<String, Object> varResult = attFnGetDealershipById.execute(opToId(prmId));
 		@SuppressWarnings("unchecked")
 		Map<String, Object> varDealershipMap = (Map<String, Object>) varResult.get("return");
-		if (varDealershipMap == null) {return null;}
+		if(varDealershipMap == null )return null;
 		varDealership.setAttDealershipId(((Number) varDealershipMap.get("DEA_ID")).intValue());
 		varDealership.setAttName((String) varDealershipMap.get("DEA_NAME"));
 		varDealership.setAttPhone((String) varDealershipMap.get("DEA_PHONE"));

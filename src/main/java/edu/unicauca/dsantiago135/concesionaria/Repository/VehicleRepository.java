@@ -149,8 +149,7 @@ public class VehicleRepository {
 		Map<String,Object> varResult = attFnGetVehicleById.execute(opToId(prmId));
 		@SuppressWarnings("unchecked")
 		Map<String, Object> varVehicleMap = (Map<String, Object>) varResult.get("return");
-		if (varVehicleMap == null) return null;
-
+		if(varVehicleMap == null )return null;
 		varVehicle.setAttVehicleId(((Number)varVehicleMap.get("VEH_ID")).intValue());
 		varVehicle.setAttYear(((Number)varVehicleMap.get("VEH_YEAR")).intValue());
 		varVehicle.setAttBodyType((String)varVehicleMap.get("VEH_BODY_TYPE"));

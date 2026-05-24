@@ -1,5 +1,6 @@
 package edu.unicauca.dsantiago135.concesionaria.Repository;
 
+import java.sql.Date;
 import java.util.List;
 import java.util.Map;
 import java.sql.ResultSet;
@@ -53,7 +54,7 @@ public class EmployeeRepository {
 		this.attFnGetEmployeesByDealership = new SimpleJdbcCall(attJdbcTemplate).withCatalogName(attPkg)
 				.withFunctionName("FN_GET_EMPLOYEES_BY_DEALERSHIP").returningResultSet("return", opEmployeeRowMapper());
 		this.attFnGetEmployeesAboveAvg = new SimpleJdbcCall(attJdbcTemplate).withCatalogName(attPkg)
-				.withFunctionName("FN_GET_EMPLOYEES_ABOVE_AVG ").returningResultSet("return", opEmployeeRowMapper());
+				.withFunctionName("FN_GET_EMPLOYEES_ABOVE_AVG").returningResultSet("return", opEmployeeRowMapper());
 		this.attFnGetAllEmployees = new SimpleJdbcCall(attJdbcTemplate).withCatalogName(attPkg)
 				.withFunctionName("FN_GET_ALL_EMPLOYEES").returningResultSet("return", opEmployeeRowMapper());
 	}
@@ -135,35 +136,62 @@ public class EmployeeRepository {
 
 	// region PROCEDURES
 	public void opRegisterEmployee(clsEmployee prmEmployee)throws excDatabaseException, excDuplicateDataException, excValidationException{
-
+		attSpRegisterEmployee.execute(opToParams(prmEmployee));
 	}
 
 	public void opUpdateEmployee(clsEmployee prmEmployee)throws excDatabaseException, excNotFoundException, excValidationException{
-
+		attSpUpdateEmployee.execute(opToParams(prmEmployee));
 	}
+	
 	public void opDisableEmployee(int prmId)throws excDatabaseException, excOperationNotAllowedException{
-
+		attSpDisableEmployee.execute(opToId(prmId));
 	}
 
 	public boolean opEmployeeExist(int prmId)throws excDatabaseException{
-		return true;
+		Boolean varResult = attFnEmployeeExist.executeFunction(Boolean.class,opToId(prmId));
+		return Boolean.TRUE.equals(varResult);
 	}
 
 	public clsEmployee opGetEmployeeById(int prmId)throws excDatabaseException, excNotFoundException{
-		return null;
+		clsEmployee varEmployee = new clsEmployee();
+		Map<String, Object> varResult = attFnGetEmployeeById.execute(opToId(prmId));
+		@SuppressWarnings("unchecked")
+		Map<String, Object> varEmployeeData = (Map<String, Object>) varResult.get("return");
+		if(varEmployeeData == null )return null;
+		varEmployee.setAttEmployeeId(((Number)varEmployeeData.get("EMP_ID")).intValue());
+		clsDealership varDealership = new clsDealership();
+		varDealership.setAttDealershipId(((Number)varEmployeeData.get("DEA_ID")).intValue());
+		varEmployee.setAttDealership(varDealership);
+		varEmployee.setAttName((String)varEmployeeData.get("EMP_NAME"));
+		varEmployee.setAttPhone((String)varEmployeeData.get("EMP_PHONE"));
+		varEmployee.setAttRole((String)varEmployeeData.get("EMP_ROLE"));
+		varEmployee.setAttSalary(((Number)varEmployeeData.get("EMP_SALARY")).doubleValue());
+		varEmployee.setAttState((String)varEmployeeData.get("EMP_STATE"));
+		varEmployee.setAttHireDate((Date)varEmployeeData.get("EMP_HIRE_DATE"));
+		return varEmployee;
 	}
 
 	public List<clsEmployee> opGetEmployeesByDealership(int prmDealershipId)throws excDatabaseException{
-		return null;
+		MapSqlParameterSource varParams = new MapSqlParameterSource();
+		varParams.addValue("P_DEA_ID", prmDealershipId);
+		Map<String, Object> varResult = attFnGetEmployeesByDealership.execute(varParams);
+		@SuppressWarnings("unchecked")
+		List<clsEmployee> varEmployee = (List<clsEmployee>) varResult.get("return");
+		return varEmployee != null? varEmployee: List.of();
 	}
 
 	public List<clsEmployee> opGetAllEmployees()throws excDatabaseException{
-		return null;
+		Map<String, Object> varResult = attFnGetAllEmployees.execute();
+		@SuppressWarnings("unchecked")
+		List<clsEmployee> varEmployee = (List<clsEmployee>) varResult.get("return");
+		return varEmployee != null? varEmployee: List.of();
 	}
 
 	public List<clsEmployee> opGetEmployeesAboveAvg()throws excDatabaseException{
-		return null;
+		Map<String, Object> varResult = attFnGetEmployeesAboveAvg.execute();
+		@SuppressWarnings("unchecked")
+		List<clsEmployee> varEmployee = (List<clsEmployee>) varResult.get("return");
+		return varEmployee != null? varEmployee: List.of();
 	}
 	// endregion
-
 }
