@@ -17,16 +17,47 @@ import edu.unicauca.dsantiago135.concesionaria.Repository.EmployeeRepository;
 @Service
 public class EmployeeService {
 
+   // region ATTRIBUTES
    private final EmployeeRepository attEmployeeRepository;
    private final DealershipService attDealershipService;
    private HashMap<Integer, clsEmployee> attEmployees = new HashMap<>();
+   // endregion
 
+   // region CONSTRUCTOR
    public EmployeeService(EmployeeRepository prmEmployeeRepository, DealershipService prmDealershipService) {
       this.attEmployeeRepository = prmEmployeeRepository;
       this.attDealershipService = prmDealershipService;
    }
+   // endregion
 
-   public void opRegisterEmployee(int prmId, int prmDealershipId, String prmName, String prmPhone,double prmSalary, Date prmHireDate, String prmRole, String prmState){
+   // region PRIVATE HELPERS
+   private clsEmployee opFetchFromDB(int prmId) {
+      clsEmployee varEmployee;
+      try {
+         varEmployee = attEmployeeRepository.opGetEmployeeById(prmId);
+      } catch (excDatabaseException e) {
+         throw new excDatabaseException("Error al obtener el empleado desde BD: ", e);
+      }
+      if (varEmployee == null)
+         throw new excNotFoundException("Empleado no encontrado");
+
+      clsDealership varDealership = attDealershipService
+            .opGetDealershipById(varEmployee.getAttDealership().getAttDealershipId());
+      varEmployee.setAttDealership(varDealership);
+      return varEmployee;
+   }
+
+   private void opRefreshCache(int prmId) {
+      attEmployees.remove(prmId);
+      clsEmployee varFresh = opFetchFromDB(prmId);
+      attEmployees.put(prmId, varFresh);
+   }
+   // endregion
+
+   // region PROCEDURES
+   public void opRegisterEmployee(int prmId, int prmDealershipId, String prmName, String prmPhone,
+         double prmSalary, Date prmHireDate, String prmRole, String prmState) {
+
       clsValidations.opValidateId(prmId);
       clsValidations.opValidateId(prmDealershipId);
 
@@ -45,24 +76,25 @@ public class EmployeeService {
 
       clsDealership varDealership = attDealershipService.opGetDealershipById(prmDealershipId);
 
-      clsEmployee varEmployee = new clsEmployee();
-      varEmployee.setAttEmployeeId(prmId);
-      varEmployee.setAttDealership(varDealership);
-      varEmployee.setAttName(prmName);
-      varEmployee.setAttPhone(prmPhone);
-      varEmployee.setAttSalary(prmSalary);
-      varEmployee.setAttHireDate(prmHireDate);
-      varEmployee.setAttRole(prmRole);
-      varEmployee.setAttState(prmState);
+      clsEmployee varTemp = new clsEmployee();
+      varTemp.setAttEmployeeId(prmId);
+      varTemp.setAttDealership(varDealership);
+      varTemp.setAttName(prmName);
+      varTemp.setAttPhone(prmPhone);
+      varTemp.setAttSalary(prmSalary);
+      varTemp.setAttHireDate(prmHireDate);
+      varTemp.setAttRole(prmRole);
+      varTemp.setAttState(prmState);
+
       try {
-         attEmployeeRepository.opRegisterEmployee(varEmployee);
+         attEmployeeRepository.opRegisterEmployee(varTemp);
       } catch (excDatabaseException e) {
-         throw new excDatabaseException("Error al registrar empleado: " , e);
+         throw new excDatabaseException("Error al registrar empleado: ", e);
       }
-      attEmployees.put(prmId, varEmployee);
+      opRefreshCache(prmId);
    }
 
-   public void opUpdateEmployee(int prmId, String prmName, String prmPhone, Double prmSalary){
+   public void opUpdateEmployee(int prmId, String prmName, String prmPhone, Double prmSalary) {
       clsValidations.opValidateId(prmId);
 
       if (!attEmployeeRepository.opEmployeeExist(prmId))
@@ -75,102 +107,97 @@ public class EmployeeService {
       if (prmSalary != null)
          clsValidations.opValidatePositiveNumber(prmSalary, "Salario");
 
-      clsEmployee varEmployee = attEmployees.get(prmId);
-      if (varEmployee == null)
-         varEmployee = attEmployeeRepository.opGetEmployeeById(prmId);
+      clsEmployee varEmployee = opFetchFromDB(prmId);
+
       if (prmName != null)
          varEmployee.setAttName(prmName);
       if (prmPhone != null)
          varEmployee.setAttPhone(prmPhone);
       if (prmSalary != null)
          varEmployee.setAttSalary(prmSalary);
+
       try {
          attEmployeeRepository.opUpdateEmployee(varEmployee);
       } catch (excDatabaseException e) {
-         throw new excDatabaseException("Error al actualizar empleado: " , e);
+         throw new excDatabaseException("Error al actualizar empleado: ", e);
       }
-      attEmployees.put(prmId, varEmployee);
+
+      opRefreshCache(prmId);
    }
 
-   public void opDisableEmployee(int prmId){
+   public void opDisableEmployee(int prmId) {
       clsValidations.opValidateId(prmId);
-      clsEmployee varEmployee = attEmployees.get(prmId);
+
+      if(!attEmployeeRepository.opEmployeeExist(prmId)) throw new excNotFoundException("Empleado no encontrado");
+
       try {
-         if (varEmployee == null)
-            varEmployee = attEmployeeRepository.opGetEmployeeById(prmId);
-         if (varEmployee == null)
-            throw new excNotFoundException("Empleado no encontrado");
          attEmployeeRepository.opDisableEmployee(prmId);
-         varEmployee.setAttState("inactive");
       } catch (excNotFoundException e) {
          throw e;
       } catch (excDatabaseException e) {
-         throw new excDatabaseException("Error al inactivar al empleado: " , e);
+         throw new excDatabaseException("Error al inactivar al empleado: ", e);
       }
-      attEmployees.put(prmId, varEmployee);
-   }
 
-   public clsEmployee opGetEmployeeById(int prmId){
-      clsValidations.opValidateId(prmId);
+      opRefreshCache(prmId);
+   }
+   // endregion
+
+   // region FUNCTIONS
+   public clsEmployee opGetEmployeeById(int prmId) {
+      if(!attEmployeeRepository.opEmployeeExist(prmId)) throw new excNotFoundException("Empleado no encontrado");
+
       clsEmployee varEmployee = attEmployees.get(prmId);
-      try {
-         if (varEmployee == null)
-            varEmployee = attEmployeeRepository.opGetEmployeeById(prmId);
-         if (varEmployee != null) {
-            clsDealership varDealership = attDealershipService.opGetDealershipById(
-                  varEmployee.getAttDealership().getAttDealershipId());
-            varEmployee.setAttDealership(varDealership);
-         }
-      } catch (excDatabaseException e) {
-         throw new excDatabaseException("Error al obtener el empleado: " , e);
-      }
-      if (varEmployee == null)
-         throw new excNotFoundException("Empleado no encontrado");
+      if (varEmployee != null)
+         return varEmployee;
+
+      varEmployee = opFetchFromDB(prmId);
       attEmployees.put(prmId, varEmployee);
       return varEmployee;
    }
 
-   public List<clsEmployee> opGetEmployeesByDealership(int prmDealershipId){
+   public List<clsEmployee> opGetEmployeesByDealership(int prmDealershipId) {
       clsValidations.opValidateId(prmDealershipId);
       clsDealership varDealership = attDealershipService.opGetDealershipById(prmDealershipId);
-      List<clsEmployee> varEmployees = null;
+
+      List<clsEmployee> varEmployees;
       try {
          varEmployees = attEmployeeRepository.opGetEmployeesByDealership(prmDealershipId);
          for (clsEmployee varEmployee : varEmployees)
             varEmployee.setAttDealership(varDealership);
       } catch (excDatabaseException e) {
-         throw new excDatabaseException("Error al obtener empleados: " , e);
+         throw new excDatabaseException("Error al obtener empleados: ", e);
       }
       return varEmployees;
    }
 
-   public List<clsEmployee> opGetAllEmployees(){
-      List<clsEmployee> varEmployees = null;
+   public List<clsEmployee> opGetAllEmployees() {
+      List<clsEmployee> varEmployees;
       try {
          varEmployees = attEmployeeRepository.opGetAllEmployees();
          for (clsEmployee varEmployee : varEmployees) {
-            clsDealership varDealership = attDealershipService.opGetDealershipById(
-                  varEmployee.getAttDealership().getAttDealershipId());
+            clsDealership varDealership = attDealershipService
+                  .opGetDealershipById(varEmployee.getAttDealership().getAttDealershipId());
             varEmployee.setAttDealership(varDealership);
          }
       } catch (excDatabaseException e) {
-         throw new excDatabaseException("Error al obtener empleados: " , e);
+         throw new excDatabaseException("Error al obtener empleados: ", e);
       }
       return varEmployees;
    }
 
-   public List<clsEmployee> opGetEmployeesAboveAvg(){
-      List<clsEmployee> varEmployees = null;
+   public List<clsEmployee> opGetEmployeesAboveAvg() {
+      List<clsEmployee> varEmployees;
       try {
          varEmployees = attEmployeeRepository.opGetEmployeesAboveAvg();
          for (clsEmployee varEmployee : varEmployees) {
-            clsDealership varDealership = attDealershipService.opGetDealershipById(
-                  varEmployee.getAttDealership().getAttDealershipId());
+            clsDealership varDealership = attDealershipService
+                  .opGetDealershipById(varEmployee.getAttDealership().getAttDealershipId());
             varEmployee.setAttDealership(varDealership);
          }
       } catch (excDatabaseException e) {
-         throw new excDatabaseException("Error al obtener empleados: " , e);
+         throw new excDatabaseException("Error al obtener empleados: ", e);
       }
       return varEmployees;
    }
+   // endregion
 }

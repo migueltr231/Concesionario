@@ -139,20 +139,26 @@ public class SaleRepository {
 	// endregion
 
 	// region PROCEDURES
-	public void opRegisterSale(clsSale prmSale){
+	public int opRegisterSale(clsSale prmSale){
+		Map<String, Object> varResult = null;
 		try {
-			attSpRegisterSale.execute(opToParams(prmSale));
+			varResult = attSpRegisterSale.execute(opToParams(prmSale));
 		} catch (Exception e) {
 			throw new excDatabaseException(e.getMessage());
 		}
+		Number varId = (Number) varResult.get("P_SALE_ID");
+		return varId.intValue();
 	}
 	
-	public void opRegisterReservation(clsSale prmSale){
+	public int opRegisterReservation(clsSale prmSale){
+		Map<String, Object> varResult = null;
 		try {
-			attSpRegisterReservation.execute(opToParams(prmSale));
+			varResult = attSpRegisterReservation.execute(opToParams(prmSale));
 		} catch (Exception e) {
 			throw new excDatabaseException(e.getMessage());
 		}
+		Number varId = (Number) varResult.get("P_SALE_ID");
+		return varId.intValue();
 	}
 	
 	public void opCompleteReservation(int prmId){

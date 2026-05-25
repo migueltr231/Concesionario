@@ -2,11 +2,10 @@ package edu.unicauca.dsantiago135.concesionaria.Controller;
 
 import org.springframework.stereotype.Component;
 
-import edu.unicauca.dsantiago135.concesionaria.Error.excDatabaseException;
 import edu.unicauca.dsantiago135.concesionaria.Model.*;
 import edu.unicauca.dsantiago135.concesionaria.Service.*;
 
-import java.util.Date;
+import java.sql.Date;
 import java.util.List;
 
 @Component
@@ -47,24 +46,20 @@ public class clsController {
         attCustomerService.opRegisterCustomer(prmId, prmName, prmEmail, prmPhone, prmState);
     }
 
-    public boolean opRegisterUnit(int prmIdVehicle, int prmIdUnit, String prmState, String prmLicensePlate,
-            String prmColor, int prmMileage, Date prmDateEntry, String prmCondition) {
-
-        return false;
+    public void opRegisterUnit(int prmIdVehicle, int prmIdUnit, int prmDealershipId, String prmStatus, String prmLicensePlate,String prmColor, int prmMileage, java.sql.Date prmDateEntry, String prmCondition) {
+        attUnitService.opRegisterUnit(prmIdVehicle, prmIdUnit, prmDealershipId, prmStatus, prmLicensePlate, prmColor, prmMileage, prmDateEntry, prmCondition);
     }
 
     public void opRegisterVehicle(int prmId, String prmState, String prmBrand, String prmModel, int prmYear,String prmBodyType, String prmFuelType, String prmCategory){
         attVehicleService.opRegisterVehicle(prmId, prmState, prmBrand, prmModel, prmYear, prmBodyType, prmFuelType,prmCategory);
     }
 
-    public boolean opRegisterReservation(int prmIdSale, int prmIdCustomer, int prmIdEmployee, int prmIdUnit,
-            Date prmDateStart, double prmPrice, String prmStatus, Date prmDateEnd) {
+    public boolean opRegisterReservation(int prmIdCustomer, int prmIdEmployee, int prmIdUnit, double prmPrice, Date prmDateEnd) {
 
         return false;
     }
 
-    public boolean opRegisterSale(int prmIdSale, int prmIdCustomer, int prmIdEmployee, int prmIdUnit, Date prmDateStart,
-            double prmPrice, String prmStatus) {
+    public boolean opRegisterSale(int prmIdCustomer, int prmIdEmployee, int prmIdUnit, double prmPrice) {
 
         return false;
     }
@@ -86,9 +81,8 @@ public class clsController {
         attCustomerService.opUpdateCustomer(prmId, prmName, prmPhone, prmEmail);
     }
 
-    public boolean opUpdateUnitState(int prmId, String prmState) {
-
-        return false;
+    public void opUpdateUnitState(int prmId, String prmState) {
+        attUnitService.opUpdateUnitStatus(prmId, prmState);
     }
 
     public boolean opUpdateSaleState(int prmId, String prmState) {
@@ -115,8 +109,7 @@ public class clsController {
     }
 
     public clsUnit opGetUnitBy(int prmId) {
-    
-    return null;
+    return attUnitService.opGetUnitById(prmId);
     }
 
     public clsSale opGetSaleBy(int prmId) {
@@ -142,13 +135,11 @@ public class clsController {
     }
 
     public List<clsUnit> opGetInventory() {
-    
-    return null;
+        return attUnitService.opGetAllUnits();
     }
 
     public List<clsUnit> opGetAvailableUnits() {
-    
-    return null;
+        return attUnitService.opGetUnitsByStatus("available");
     }
 
     public List<clsSale> opGetSales() {
@@ -157,8 +148,7 @@ public class clsController {
     }
 
     public List<clsUnit> opGetReservedUnits() {
-    
-    return null;
+    return attUnitService.opGetUnitsByStatus("reserved");
     }
 
     public List<clsSalesGoal> opGetSalesGoal() {
@@ -203,12 +193,7 @@ public class clsController {
     }
 
     public boolean opModifyEmployeeRole() {
-
         return false;
-    }
-
-    public List<clsUnit> opGetInnventory(int prmId) {
-        return null;
     }
 
     public List<clsEmployee> opGetEmployeeByDealership(int prmId) {

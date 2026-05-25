@@ -133,12 +133,15 @@ public class SalesGoalRepository {
 	// endregion
 
 	// region PROCEDURES
-	public void opRegisterSalesGoal(clsSalesGoal prmSalesGoal){
+	public int opRegisterSalesGoal(clsSalesGoal prmSalesGoal){
+		Map<String, Object> varResult = null;
 		try {
-			attSpRegisterSalesGoal.execute(opToParams(prmSalesGoal));
+			varResult = attSpRegisterSalesGoal.execute(opToParams(prmSalesGoal));
 		} catch (excDatabaseException e) {
 			throw new excDatabaseException(e.getMessage());
 		}
+		Number varId = (Number) varResult.get("P_SGL_ID");
+		return varId.intValue();
 	}
 	
 	public void opUpdateSalesGoal(clsSalesGoal prmSalesGoal){
