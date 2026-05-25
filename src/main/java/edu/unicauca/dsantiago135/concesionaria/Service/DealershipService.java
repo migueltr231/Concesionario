@@ -15,14 +15,39 @@ import edu.unicauca.dsantiago135.concesionaria.Repository.DealershipRepository;
 @Service
 public class DealershipService {
 
+   // region ATTRIBUTES
    private final DealershipRepository attDealershipRepository;
    private HashMap<Integer, clsDealership> attDealerships = new HashMap<>();
+   // endregion
 
+   // region CONSTRUCTOR
    public DealershipService(DealershipRepository prmDealershipRepository) {
       this.attDealershipRepository = prmDealershipRepository;
    }
+   // endregion
 
-   public void opRegisterDealership(int prmId, String prmName, String prmState, String prmAddress, String prmPhone){
+   // region PRIVATE HELPERS
+   private clsDealership opFetchFromDB(int prmId) {
+      clsDealership varDealership;
+      try {
+         varDealership = attDealershipRepository.opGetDealershipById(prmId);
+      } catch (excDatabaseException e) {
+         throw new excDatabaseException("Error al obtener la concesionaria desde BD: ", e);
+      }
+      if (varDealership == null)
+         throw new excNotFoundException("Concesionaria no encontrada");
+      return varDealership;
+   }
+
+   private void opRefreshCache(int prmId) {
+      attDealerships.remove(prmId);
+      clsDealership varFresh = opFetchFromDB(prmId);
+      attDealerships.put(prmId, varFresh);
+   }
+   // endregion
+
+   // region PROCEDURES
+   public void opRegisterDealership(int prmId, String prmName, String prmState, String prmAddress, String prmPhone) {
       clsValidations.opValidateId(prmId);
 
       if (attDealershipRepository.opDealershipExist(prmId))
@@ -36,21 +61,23 @@ public class DealershipService {
       clsValidations.opValidatePhone(prmPhone);
       clsValidations.opValidateState(prmState);
 
-      clsDealership varDealership = new clsDealership();
-      varDealership.setAttDealershipId(prmId);
-      varDealership.setAttName(prmName);
-      varDealership.setAttAddress(prmAddress);
-      varDealership.setAttPhone(prmPhone);
-      varDealership.setAttState(prmState);
+      clsDealership varTemp = new clsDealership();
+      varTemp.setAttDealershipId(prmId);
+      varTemp.setAttName(prmName);
+      varTemp.setAttAddress(prmAddress);
+      varTemp.setAttPhone(prmPhone);
+      varTemp.setAttState(prmState);
+
       try {
-         attDealershipRepository.opRegisterDealership(varDealership);
+         attDealershipRepository.opRegisterDealership(varTemp);
       } catch (excDatabaseException e) {
-         throw new excDatabaseException("Error al registrar Concesionaria: " , e);
+         throw new excDatabaseException("Error al registrar Concesionaria: ", e);
       }
-      attDealerships.put(prmId, varDealership);
+
+      opRefreshCache(prmId);
    }
 
-   public void opUpdateDealership(int prmId, String prmName, String prmAddress, String prmPhone){
+   public void opUpdateDealership(int prmId, String prmName, String prmAddress, String prmPhone) {
       clsValidations.opValidateId(prmId);
 
       if (!attDealershipRepository.opDealershipExist(prmId))
@@ -63,62 +90,62 @@ public class DealershipService {
       if (prmPhone != null)
          clsValidations.opValidatePhone(prmPhone);
 
-      clsDealership varDealership = attDealerships.get(prmId);
-      if (varDealership == null)
-         varDealership = attDealershipRepository.opGetDealershipById(prmId);
+      clsDealership varDealership = opFetchFromDB(prmId);
+
       if (prmName != null)
          varDealership.setAttName(prmName);
       if (prmAddress != null)
          varDealership.setAttAddress(prmAddress);
       if (prmPhone != null)
          varDealership.setAttPhone(prmPhone);
+
       try {
          attDealershipRepository.opUpdateDealership(varDealership);
       } catch (excDatabaseException e) {
-         throw new excDatabaseException("Error al actualizar concesionaria: " , e);
+         throw new excDatabaseException("Error al actualizar concesionaria: ", e);
       }
-      attDealerships.put(prmId, varDealership);
+
+      opRefreshCache(prmId);
    }
 
-   public void opDisableDealership(int prmId){
+   public void opDisableDealership(int prmId) {
       clsValidations.opValidateId(prmId);
-      clsDealership varDealership = attDealerships.get(prmId);
+
+      if(!attDealershipRepository.opDealershipExist(prmId)) throw new excNotFoundException("Concesionaria no encontrada");
+
       try {
-         if (varDealership == null)
-            varDealership = attDealershipRepository.opGetDealershipById(prmId);
-         if (varDealership == null)
-            throw new excNotFoundException("Concesionaria no encontrada");
          attDealershipRepository.opDisableDealership(prmId);
-         varDealership.setAttState("inactive");
       } catch (excNotFoundException e) {
          throw e;
       } catch (excDatabaseException e) {
-         throw new excDatabaseException("Error al inactivar concesionaria: " , e);
+         throw new excDatabaseException("Error al inactivar concesionaria: ", e);
       }
-      attDealerships.put(prmId, varDealership);
-   }
 
-   public clsDealership opGetDealershipById(int prmId){
+      opRefreshCache(prmId);
+   }
+   // endregion
+
+   // region FUNCTIONS
+   public clsDealership opGetDealershipById(int prmId) {
       clsValidations.opValidateId(prmId);
+
       clsDealership varDealership = attDealerships.get(prmId);
-      try {
-         if (varDealership == null)
-            varDealership = attDealershipRepository.opGetDealershipById(prmId);
-      } catch (excDatabaseException e) {
-         throw new excDatabaseException("Error al obtener concesionaria: " , e);
-      }
-      if (varDealership == null)
-         throw new excNotFoundException("Concesionaria no encontrada");
+      if (varDealership != null)
+         return varDealership;
+
+      varDealership = opFetchFromDB(prmId);
+      attDealerships.put(prmId, varDealership);
       return varDealership;
    }
 
    public List<clsDealership> opGetAllDealership() {
-      List<clsDealership> varDealerships = null;
+      List<clsDealership> varDealerships;
       try {
          varDealerships = attDealershipRepository.opGetAllDealership();
       } catch (excDatabaseException e) {
-         throw new excDatabaseException("Error al obtener concesionarias: " , e);
+         throw new excDatabaseException("Error al obtener concesionarias: ", e);
       }
       return varDealerships;
    }
+   // endregion
 }

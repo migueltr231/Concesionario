@@ -14,16 +14,44 @@ import edu.unicauca.dsantiago135.concesionaria.Repository.VehicleRepository;
 
 @Service
 public class VehicleService {
+
+   // region ATTRIBUTES
    private final VehicleRepository attVehicleRepository;
    private HashMap<Integer, clsVehicle> attVehicles = new HashMap<>();
+   // endregion
 
-   public VehicleService(VehicleRepository prmVehicleRepository){
+   // region CONSTRUCTOR
+   public VehicleService(VehicleRepository prmVehicleRepository) {
       this.attVehicleRepository = prmVehicleRepository;
    }
+   // endregion
 
-   public void opRegisterVehicle(int prmId, String prmState, String prmBrand, String prmModel, int prmYear,String prmBodyType, String prmFuelType, String prmCategory){
+   // region PRIVATE HELPERS
+   private clsVehicle opFetchFromDB(int prmId) {
+      clsVehicle varVehicle;
+      try {
+         varVehicle = attVehicleRepository.opGetVehicleById(prmId);
+      } catch (excDatabaseException e) {
+         throw new excDatabaseException("Error al obtener el vehículo desde BD: ", e);
+      }
+      if (varVehicle == null)
+         throw new excNotFoundException("Vehículo no encontrado");
+      return varVehicle;
+   }
+
+   private void opRefreshCache(int prmId) {
+      attVehicles.remove(prmId);
+      clsVehicle varFresh = opFetchFromDB(prmId);
+      attVehicles.put(prmId, varFresh);
+   }
+   // endregion
+
+   // region PROCEDURES
+   public void opRegisterVehicle(int prmId, String prmState, String prmBrand, String prmModel, int prmYear,
+         String prmBodyType, String prmFuelType, String prmCategory) {
 
       clsValidations.opValidateId(prmId);
+
       if (attVehicleRepository.opVehicleExist(prmId))
          throw new excDuplicateDataException("Vehiculo ya registrado");
 
@@ -31,29 +59,31 @@ public class VehicleService {
       clsValidations.opValidateAlphanumericField(prmBrand, "la marca", 2, 40);
       clsValidations.opValidateAlphanumericField(prmModel, "el modelo", 1, 40);
       clsValidations.opValidateYear(prmYear);
-
       clsValidations.opValidateAlphanumericField(prmBodyType, "la carrocería", 2, 20);
       clsValidations.opValidateVehicleFuelType(prmFuelType);
       clsValidations.opValidateVehicleCategory(prmCategory);
 
-      clsVehicle varVehicle = new clsVehicle();
-      varVehicle.setAttVehicleId(prmId);
-      varVehicle.setAttBodyType(prmBodyType);
-      varVehicle.setAttBrand(prmBrand);
-      varVehicle.setAttCategory(prmCategory);
-      varVehicle.setAttFuelType(prmFuelType);
-      varVehicle.setAttModel(prmModel);
-      varVehicle.setAttState(prmState);
-      varVehicle.setAttYear(prmYear);
+      clsVehicle varTemp = new clsVehicle();
+      varTemp.setAttVehicleId(prmId);
+      varTemp.setAttState(prmState);
+      varTemp.setAttBrand(prmBrand);
+      varTemp.setAttModel(prmModel);
+      varTemp.setAttYear(prmYear);
+      varTemp.setAttBodyType(prmBodyType);
+      varTemp.setAttFuelType(prmFuelType);
+      varTemp.setAttCategory(prmCategory);
+
       try {
-         attVehicleRepository.opRegisterVehicle(varVehicle);
+         attVehicleRepository.opRegisterVehicle(varTemp);
       } catch (excDatabaseException e) {
          throw new excDatabaseException("Error al registrar vehiculo: ", e);
       }
-      attVehicles.put(prmId, varVehicle);
+
+      opRefreshCache(prmId);
    }
 
-   public void opUpdateVehicle(int prmId, String prmBrand, String prmModel, Integer prmYear, String prmBodyType,String prmFuelType, String prmCategory){
+   public void opUpdateVehicle(int prmId, String prmBrand, String prmModel, Integer prmYear,
+         String prmBodyType, String prmFuelType, String prmCategory) {
 
       clsValidations.opValidateId(prmId);
 
@@ -73,9 +103,9 @@ public class VehicleService {
       if (prmCategory != null)
          clsValidations.opValidateVehicleCategory(prmCategory);
 
-      clsVehicle varVehicle = attVehicles.get(prmId);
-      if (varVehicle == null)
-         varVehicle = attVehicleRepository.opGetVehicleById(prmId);
+
+      clsVehicle varVehicle = opFetchFromDB(prmId);
+
       if (prmBrand != null)
          varVehicle.setAttBrand(prmBrand);
       if (prmModel != null)
@@ -92,55 +122,50 @@ public class VehicleService {
       try {
          attVehicleRepository.opUpdateVehicle(varVehicle);
       } catch (excDatabaseException e) {
-         throw new excDatabaseException("Error al actualizar vehiculo: " , e);
+         throw new excDatabaseException("Error al actualizar vehiculo: ", e);
       }
-      attVehicles.put(prmId, varVehicle);
+
+      opRefreshCache(prmId);
    }
 
-   public void opDisableVehicle(int prmId){
-
+   public void opDisableVehicle(int prmId) {
       clsValidations.opValidateId(prmId);
 
-      if (!attVehicleRepository.opVehicleExist(prmId))
-         throw new excNotFoundException("Vehículo no encontrado");
+      if (!attVehicleRepository.opVehicleExist(prmId))throw new excNotFoundException("El vehículo no fue encontrado.");
 
-      clsVehicle varVehicle = attVehicles.get(prmId);
       try {
-         if (varVehicle == null)
-            varVehicle = attVehicleRepository.opGetVehicleById(prmId);
          attVehicleRepository.opDisableVehicle(prmId);
-         varVehicle.setAttState("inactive");
       } catch (excNotFoundException e) {
          throw e;
       } catch (excDatabaseException e) {
-         throw new excDatabaseException("Error al inactivar vehiculo: " , e);
+         throw new excDatabaseException("Error al inactivar vehiculo: ", e);
       }
-      attVehicles.put(prmId, varVehicle);
+
+      opRefreshCache(prmId);
    }
+   // endregion
 
-   public clsVehicle opGetVehicleById(int prmId){
-
+   // region FUNCTIONS
+   public clsVehicle opGetVehicleById(int prmId) {
       clsValidations.opValidateId(prmId);
+
       clsVehicle varVehicle = attVehicles.get(prmId);
-      try {
-         if (varVehicle == null)
-            varVehicle = attVehicleRepository.opGetVehicleById(prmId);
-         if (varVehicle == null)
-            throw new excNotFoundException("Vehículo no encontrado");
-      } catch (excDatabaseException e) {
-         throw new excDatabaseException("Error al obtener vehículo: " , e);
-      }
+      if (varVehicle != null)
+         return varVehicle;
+
+      varVehicle = opFetchFromDB(prmId);
+      attVehicles.put(prmId, varVehicle);
       return varVehicle;
    }
 
-   public List<clsVehicle> opGetAllVehicles(){
-
-      List<clsVehicle> varVehicles = null;
+   public List<clsVehicle> opGetAllVehicles() {
+      List<clsVehicle> varVehicles;
       try {
          varVehicles = attVehicleRepository.opGetAllVehicles();
       } catch (excDatabaseException e) {
-         throw new excDatabaseException("Error al obtener vehiculos: " , e);
+         throw new excDatabaseException("Error al obtener vehiculos: ", e);
       }
       return varVehicles;
    }
+   // endregion
 }
