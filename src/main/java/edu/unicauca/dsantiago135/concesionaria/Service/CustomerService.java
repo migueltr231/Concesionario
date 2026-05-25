@@ -14,7 +14,7 @@ public class CustomerService {
         this.attCustomerRepository = prmCustomerRepository;
     }
 
-    public clsCustomer opGetCustomerBy(int prmId) {
-        return null;
+    public void opRegisterCustomer(clsCustomer prmCustomer){
+        attCustomerRepository.opRegisterCustomer(prmCustomer);
     }
 }

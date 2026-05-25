@@ -11,10 +11,27 @@ import java.util.List;
 @Component
 public class clsController {
 
+//region Attributes
     private final CustomerService attCustomerService;
+    private final EmployeeService attEmployeeService;
+    private final DealershipService attDealershipService;
+    private final VehicleService attVehicleService;
+    private final UnitService attUnitService;
+    private final SaleService attSaleService;
+    private final SalesGoalService attSalesGoalService;
 
-    public clsController(CustomerService prmCustomerService) {
+    private List<clsCustomer> attCustomers;
+//endregion
+
+    public clsController(CustomerService prmCustomerService, EmployeeService prmEmployeeService,DealershipService prmDealershipService,
+                        VehicleService prmVehicleService, UnitService prmUnitService, SaleService prmSaleService, SalesGoalService prmSalesGoalService) {
         this.attCustomerService = prmCustomerService;
+        this.attEmployeeService = prmEmployeeService;
+        this.attDealershipService = prmDealershipService;
+        this.attVehicleService = prmVehicleService;
+        this.attUnitService = prmUnitService;
+        this.attSaleService = prmSaleService;
+        this.attSalesGoalService = prmSalesGoalService;
     }
 
 
@@ -29,7 +46,6 @@ public class clsController {
     }
 
     public boolean opRegisterCustomer(int prmOUID, String prmName, String prmState, String prmPhone, String prmEmail) {
-
     return false;
     }
 
@@ -99,7 +115,7 @@ public class clsController {
     }
 
     public clsCustomer opGetCustomerBy(int prmOUID) {
-        return attCustomerService.opGetCustomerBy(prmOUID);
+        return null;
     }
 
     public clsUnit opGetUnitBy(int prmOUID) {
