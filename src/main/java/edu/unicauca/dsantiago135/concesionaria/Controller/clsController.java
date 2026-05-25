@@ -2,6 +2,7 @@ package edu.unicauca.dsantiago135.concesionaria.Controller;
 
 import org.springframework.stereotype.Component;
 
+import edu.unicauca.dsantiago135.concesionaria.Error.excDatabaseException;
 import edu.unicauca.dsantiago135.concesionaria.Model.*;
 import edu.unicauca.dsantiago135.concesionaria.Service.*;
 
@@ -11,125 +12,133 @@ import java.util.List;
 @Component
 public class clsController {
 
+    // region Attributes
     private final CustomerService attCustomerService;
+    private final EmployeeService attEmployeeService;
+    private final DealershipService attDealershipService;
+    private final VehicleService attVehicleService;
+    private final UnitService attUnitService;
+    private final SaleService attSaleService;
+    private final SalesGoalService attSalesGoalService;
+    // endregion
 
-    public clsController(CustomerService prmCustomerService) {
+    public clsController(CustomerService prmCustomerService, EmployeeService prmEmployeeService,
+            DealershipService prmDealershipService,
+            VehicleService prmVehicleService, UnitService prmUnitService, SaleService prmSaleService,
+            SalesGoalService prmSalesGoalService) {
         this.attCustomerService = prmCustomerService;
+        this.attEmployeeService = prmEmployeeService;
+        this.attDealershipService = prmDealershipService;
+        this.attVehicleService = prmVehicleService;
+        this.attUnitService = prmUnitService;
+        this.attSaleService = prmSaleService;
+        this.attSalesGoalService = prmSalesGoalService;
     }
 
-    
-    public boolean opRegisterDealership(String prmOUID, String prmName, String prmState, String prmAddress, String prmPhone) {
-        
+    public void opRegisterDealership(int prmId, String prmName, String prmState, String prmAddress, String prmPhone) {
+        attDealershipService.opRegisterDealership(prmId, prmName, prmState, prmAddress, prmPhone);
+    }
+
+    public void opRegisterEmployee(int prmIdEmployee, int prmIdDealership, String prmName, String prmState,String prmPhone, double prmSalary, Date prmHireDate, String prmRole) {
+        attEmployeeService.opRegisterEmployee(prmIdEmployee, prmIdDealership, prmName, prmPhone, prmSalary, null,prmRole, prmState);
+    }
+
+    public void opRegisterCustomer(int prmId, String prmName, String prmState, String prmPhone, String prmEmail){
+        attCustomerService.opRegisterCustomer(prmId, prmName, prmEmail, prmPhone, prmState);
+    }
+
+    public boolean opRegisterUnit(int prmIdVehicle, int prmIdUnit, String prmState, String prmLicensePlate,
+            String prmColor, int prmMileage, Date prmDateEntry, String prmCondition) {
+
         return false;
     }
 
-    public boolean opRegisterEmployee(String prmOUID, String prmName, String prmState, String prmPhone, double prmSalary, Date prmHireDate, String prmRole) {
-    
+    public void opRegisterVehicle(int prmId, String prmState, String prmBrand, String prmModel, int prmYear,String prmBodyType, String prmFuelType, String prmCategory){
+        attVehicleService.opRegisterVehicle(prmId, prmState, prmBrand, prmModel, prmYear, prmBodyType, prmFuelType,prmCategory);
+    }
+
+    public boolean opRegisterReservation(int prmIdSale, int prmIdCustomer, int prmIdEmployee, int prmIdUnit,
+            Date prmDateStart, double prmPrice, String prmStatus, Date prmDateEnd) {
+
         return false;
     }
 
-    public boolean opRegisterCustomer(String prmOUID, String prmName, String prmState, String prmPhone, String prmEmail) {
+    public boolean opRegisterSale(int prmIdSale, int prmIdCustomer, int prmIdEmployee, int prmIdUnit, Date prmDateStart,
+            double prmPrice, String prmStatus) {
 
-    return false;
+        return false;
     }
 
-    public boolean opRegisterUnit(String prmOUIDVehicle, String prmOUIDUnit, String prmState, String prmLicensePlate, String prmColor, int prmMileage, Date prmDateEntry, String prmCondition) {
-
-    return false;
+    public boolean opRegisterSalesGoal(int prmIdSaleGoal, int prmIdDealership, int prmIdEmployee, String prmGoalType,
+            double prmTargetValue, Date prmStartDate, Date prmEndDate, String prmState) {
+        return false;
     }
 
-    public boolean opRegisterVehicle(String prmOUID, String prmState, String prmBrand, String prmModel, int prmYear, String prmBodyType, String prmFuelType, String prmCategory) {
-
-    return false;
+    public void opUpdateDealership(int prmId, String prmName, String prmAddress, String prmPhone) {
+        attDealershipService.opUpdateDealership(prmId, prmName, prmAddress, prmPhone);
     }
 
-    public boolean opRegisterReservation(String prmOUIDSale, String prmOUIDCustomer, String prmOUIDEmployee, String prmOUIDUnit, Date prmDateStart, double prmPrice, String prmStatus, Date prmDateEnd) {
-
-    return false;
+    public void opUpdateEmployee(int prmId, String prmName, String prmPhone, double prmSalary) {
+        attEmployeeService.opUpdateEmployee(prmId, prmName, prmPhone, prmSalary);
     }
 
-    public boolean opRegisterSale(String prmOUIDSale, String prmOUIDCustomer, String prmOUIDEmployee, String prmOUIDUnit, Date prmDateStart, double prmPrice, String prmStatus) {
-
-    return false;
+    public void opUpdateCustomer(int prmId, String prmName, String prmPhone, String prmEmail) {
+        attCustomerService.opUpdateCustomer(prmId, prmName, prmPhone, prmEmail);
     }
 
-    public boolean opRegisterSalesGoal(String prmOUIDSaleGoal, String prmOUIDDealership, String prmOUIDEmployee, String prmGoalType, double prmTargetValue, Date prmStartDate, Date prmEndDate, String prmState) {
-    
-    return false;
+    public boolean opUpdateUnitState(int prmId, String prmState) {
+
+        return false;
     }
 
-    public boolean opUpdateDealership(String prmOUID, String prmName, String prmAddress, String prmPhone) {
-    
-    return false;
+    public boolean opUpdateSaleState(int prmId, String prmState) {
+
+        return false;
     }
 
-    public boolean opUpdateEmployee(String prmOUID, String prmName, String prmPhone, double prmSalary) {
-    
-    return false;
+    public boolean opCancelReservation(int prmId) {
+
+        return false;
     }
 
-    public boolean opUpdateCustomer(String prmOUID, String prmName, String prmPhone, String prmEmail) {
-    
-    return false;
+    public clsEmployee opGetEmployeeBy(int prmId) {
+        return attEmployeeService.opGetEmployeeById(prmId);
+
     }
 
-    public boolean opUpdateUnitState(String prmOUID, String prmState) {
-    
-    return false;
+    public clsDealership opGetDealershipBy(int prmId) {
+        return attDealershipService.opGetDealershipById(prmId);
     }
 
-    public boolean opUpdateSaleState(String prmOUID, String prmState) {
-    
-    return false;
+    public clsCustomer opGetCustomerBy(int prmId){
+        return attCustomerService.opGetCustomerById(prmId);
     }
 
-    public boolean opCancelReservation(String prmOUID) {
-    
-    return false;
-    }
-
-    public clsEmployee opGetEmployeeBy(String prmOUID){
-    
-    return null;
-    }
-    
-    public clsDealership opGetDealershipBy(String prmOUID) {
+    public clsUnit opGetUnitBy(int prmId) {
     
     return null;
     }
 
-    public clsCustomer opGetCustomerBy(int prmOUID) {
-        return attCustomerService.opGetCustomerBy(prmOUID);
-    }
-    
-    public clsUnit opGetUnitBy(String prmOUID) {
+    public clsSale opGetSaleBy(int prmId) {
     
     return null;
     }
-    
-    public clsSale opGetSaleBy(String prmOUID) {
-    
-    return null;
-    }
-    
-    public clsSalesGoal opGetSalesGoalBy(String prmOUID) {
+
+    public clsSalesGoal opGetSalesGoalBy(int prmId) {
     
     return null;
     }
 
     public List<clsDealership> opGetDealerships() {
-    
-    return null;
+        return attDealershipService.opGetAllDealership();
     }
 
-    public List<clsEmployee> opGetEmployees() {
-    
-    return null;
+    public List<clsEmployee> opGetEmployees(){
+        return attEmployeeService.opGetAllEmployees();
     }
 
     public List<clsCustomer> opGetCustomers() {
-    
-    return null;
+        return attCustomerService.opGetAllCustomers();
     }
 
     public List<clsUnit> opGetInventory() {
@@ -162,39 +171,47 @@ public class clsController {
     return false;
     }
 
-    public boolean opDisableDealership(String prmOUID) {
-    
-    return false;
+    public void opDisableDealership(int prmId) {
+        attDealershipService.opDisableDealership(prmId);
+    } 
+
+    public void opDisableEmployee(int prmId) {
+        attEmployeeService.opDisableEmployee(prmId);
     }
 
-    public boolean opDisableEmployee(String prmOUID) {
-    
-    return false;
+    public void opDisableCustomer(int prmId) {
+        attCustomerService.opDisableCustomer(prmId);
     }
 
-    public boolean opDisableCustomer(String prmOUID) {
-    
-    return false;
+    public void opDisableVehicle(int prmId) {
+        attVehicleService.opDisableVehicle(prmId);
     }
 
-    public boolean opDisableVehicle(String prmOUID) {
-    
-    return false;
+    public boolean opDisableSalesGoal(int prmId) {
+
+        return false;
     }
 
-    public boolean opDisableSalesGoal(String prmOUID) {
-    
-    return false;
+    public boolean opCompleteSale(int prmId) {
+
+        return false;
     }
 
-    public boolean opCompleteSale(String prmOUID) {
-    
-    return false;
+    public boolean opCompleteSalesGoal(int prmId) {
+
+        return false;
     }
 
-    public boolean opCompleteSalesGoal(String prmOUID) {
-    
-    return false;
+    public boolean opModifyEmployeeRole() {
+
+        return false;
     }
-    
+
+    public List<clsUnit> opGetInnventory(int prmId) {
+        return null;
+    }
+
+    public List<clsEmployee> opGetEmployeeByDealership(int prmId) {
+        return attEmployeeService.opGetEmployeesByDealership(prmId);
+    }
 }

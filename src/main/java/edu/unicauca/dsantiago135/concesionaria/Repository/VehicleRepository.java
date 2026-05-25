@@ -1,97 +1,192 @@
 package edu.unicauca.dsantiago135.concesionaria.Repository;
 
+import java.util.List;
+import java.util.Map;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Map;
 
 import org.springframework.jdbc.core.RowMapper;
-
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.simple.SimpleJdbcCall;
 import org.springframework.stereotype.Repository;
 
+import edu.unicauca.dsantiago135.concesionaria.Error.excDatabaseException;
 import edu.unicauca.dsantiago135.concesionaria.Model.clsVehicle;
 
 @Repository
 public class VehicleRepository {
 
-//region ATTRIBUTES
-private final JdbcTemplate attJdbcTemplate;
+	// region ATTRIBUTES
+	private final JdbcTemplate attJdbcTemplate;
 
-private final SimpleJdbcCall attSpRegisterX;
-private final SimpleJdbcCall attSpUpdateX;
-private final SimpleJdbcCall attSpGetX;
-//endregion
+	private static final String attPkg = "PKG_VEHICLE";
+	private final SimpleJdbcCall attSpRegisterVehicle;
+	private final SimpleJdbcCall attSpUpdateVehicle;
+	private final SimpleJdbcCall attSpDisableVehicle;
+	private final SimpleJdbcCall attFnVehicleExist;
+	private final SimpleJdbcCall attFnGetVehicleById;
+	private final SimpleJdbcCall attFnGetAllVehicles;
 
-//region CONSTRUCTOR
-public VehicleRepository(JdbcTemplate prmJdbcTemplate) {
-//Conexion 
-        this.attJdbcTemplate = prmJdbcTemplate;
-//Calls to procedures
-        this.attSpRegisterX = new SimpleJdbcCall(attJdbcTemplate).withProcedureName("sp_register_x");
-        this.attSpUpdateX = new SimpleJdbcCall(attJdbcTemplate).withProcedureName("sp_update_x");
-        this.attSpGetX = new SimpleJdbcCall(attJdbcTemplate).withProcedureName("sp_get_x");
-}
-//endregion
+	// endregion
 
-//region MAPPING
-        /**
-         * Convierte un objeto {@link clsVehicle} en un {@link MapSqlParameterSource}
-         * listo para ser enviado como parámetros a un procedimiento almacenado de Oracle.
-         *
-         * @param prmVehicle objeto de tipo {@link clsVehicle} con los datos del vehículo
-         * @return {@link MapSqlParameterSource} con los parámetros mapeados para Oracle
-         */
-        private MapSqlParameterSource opToParams(clsVehicle prmVehicle) {
-                return new MapSqlParameterSource()
-                        .addValue("P_VEH_ID",        prmVehicle.getAttVehicleId())
-                        .addValue("P_VEH_BRAND",     prmVehicle.getAttBrand())
-                        .addValue("P_VEH_MODEL",     prmVehicle.getAttModel())
-                        .addValue("P_VEH_YEAR",      prmVehicle.getAttYear())
-                        .addValue("P_VEH_BODY_TYPE", prmVehicle.getAttBodyType())
-                        .addValue("P_VEH_FUEL_TYPE", prmVehicle.getAttFuelType())
-                        .addValue("P_VEH_CATEGORY",  prmVehicle.getAttCategory())
-                        .addValue("P_VEH_STATE",     prmVehicle.getAttState());
-        }
-        /**
-         * Convierte el resultado de un procedimiento almacenado de Oracle en un objeto {@link clsVehicle}.
-         * <p>
-         * El {@link Map} de entrada corresponde a los parámetros de salida retornados
-         * por {@link org.springframework.jdbc.core.simple.SimpleJdbcCall}.
-         * </p>
-         *
-         * @param prmRow {@link Map} con las columnas y valores retornados por Oracle,
-         *               donde la clave es el nombre del parámetro y el valor es de tipo {@link Object}
-         * @return objeto de tipo {@link clsVehicle} con los datos mapeados
-         */
-        private clsVehicle opToObject(ResultSet prmRow) throws SQLException{
-                clsVehicle varVehicle = new clsVehicle();
+	// region CONSTRUCTOR
+	public VehicleRepository(JdbcTemplate prmJdbcTemplate) {
+		// Conexion
+		this.attJdbcTemplate = prmJdbcTemplate;
+		// Calls to procedures
+		this.attSpRegisterVehicle = new SimpleJdbcCall(attJdbcTemplate).withCatalogName(attPkg)
+				.withProcedureName("SP_REGISTER_VEHICLE");
+		this.attSpUpdateVehicle = new SimpleJdbcCall(attJdbcTemplate).withCatalogName(attPkg)
+				.withProcedureName("SP_UPDATE_VEHICLE");
+		this.attSpDisableVehicle = new SimpleJdbcCall(attJdbcTemplate).withCatalogName(attPkg)
+				.withProcedureName("SP_DISABLE_VEHICLE");
+		this.attFnVehicleExist = new SimpleJdbcCall(attJdbcTemplate).withCatalogName(attPkg)
+				.withFunctionName("FN_VEHICLE_EXIST");
+		this.attFnGetVehicleById = new SimpleJdbcCall(attJdbcTemplate).withCatalogName(attPkg)
+				.withFunctionName("FN_GET_VEHICLE_BY_ID");
+		this.attFnGetAllVehicles = new SimpleJdbcCall(attJdbcTemplate).withCatalogName(attPkg)
+				.withFunctionName("FN_GET_ALL_VEHICLES").returningResultSet("return", opVehicleRowMapper());
+	}
+	// endregion
 
-                varVehicle.setAttVehicleId(prmRow.getInt("VEH_ID"));
-                varVehicle.setAttBrand(prmRow.getString("VEH_BRAND"));
-                varVehicle.setAttModel(prmRow.getString("VEH_MODEL"));
-                varVehicle.setAttYear(prmRow.getInt("VEH_YEAR"));
-                varVehicle.setAttBodyType(prmRow.getString("VEH_BODY_TYPE"));
-                varVehicle.setAttFuelType(prmRow.getString("VEH_FUEL_TYPE"));
-                varVehicle.setAttCategory(prmRow.getString("VEH_CATEGORY"));
-                varVehicle.setAttState(prmRow.getString("VEH_STATE"));
+	// region MAPPING
+	/**
+	 * Convierte un objeto {@link clsVehicle} en un {@link MapSqlParameterSource}
+	 * listo para ser enviado como parámetros a un procedimiento almacenado de
+	 * Oracle.
+	 *
+	 * @param prmVehicle objeto de tipo {@link clsVehicle} con los datos del
+	 *                   vehículo
+	 * @return {@link MapSqlParameterSource} con los parámetros mapeados para Oracle
+	 */
+	private MapSqlParameterSource opToParams(clsVehicle prmVehicle) {
+		return new MapSqlParameterSource()
+				.addValue("P_VEH_ID", prmVehicle.getAttVehicleId())
+				.addValue("P_VEH_BRAND", prmVehicle.getAttBrand())
+				.addValue("P_VEH_MODEL", prmVehicle.getAttModel())
+				.addValue("P_VEH_YEAR", prmVehicle.getAttYear())
+				.addValue("P_VEH_BODY_TYPE", prmVehicle.getAttBodyType())
+				.addValue("P_VEH_FUEL_TYPE", prmVehicle.getAttFuelType())
+				.addValue("P_VEH_CATEGORY", prmVehicle.getAttCategory())
+				.addValue("P_VEH_STATE", prmVehicle.getAttState());
+	}
 
-                return varVehicle;
-        }
-        /**
-         * Sobrecarga para definir cómo convertir filas del cursor Oracle en objetos
-         * {@link clsVehicle}.
-         *
-         * @return mapper reutilizable para consultas
-         */
-        private RowMapper<clsVehicle> opVehicleRowMapper() {
-                return (rs, rowNum) -> opToObject(rs);
-        }
-//endregion
+	/**
+	 * Convierte el resultado de un procedimiento almacenado de Oracle en un objeto
+	 * {@link clsVehicle}.
+	 * <p>
+	 * El {@link Map} de entrada corresponde a los parámetros de salida retornados
+	 * por {@link org.springframework.jdbc.core.simple.SimpleJdbcCall}.
+	 * </p>
+	 *
+	 * @param prmRow {@link Map} con las columnas y valores retornados por Oracle,
+	 *               donde la clave es el nombre del parámetro y el valor es de tipo
+	 *               {@link Object}
+	 * @return objeto de tipo {@link clsVehicle} con los datos mapeados
+	 */
+	private clsVehicle opToObject(ResultSet prmRow) throws SQLException {
+		clsVehicle varVehicle = new clsVehicle();
 
-//region PROCEDURES
+		varVehicle.setAttVehicleId(prmRow.getInt("VEH_ID"));
+		varVehicle.setAttBrand(prmRow.getString("VEH_BRAND"));
+		varVehicle.setAttModel(prmRow.getString("VEH_MODEL"));
+		varVehicle.setAttYear(prmRow.getInt("VEH_YEAR"));
+		varVehicle.setAttBodyType(prmRow.getString("VEH_BODY_TYPE"));
+		varVehicle.setAttFuelType(prmRow.getString("VEH_FUEL_TYPE"));
+		varVehicle.setAttCategory(prmRow.getString("VEH_CATEGORY"));
+		varVehicle.setAttState(prmRow.getString("VEH_STATE"));
 
-//endregion
+		return varVehicle;
+	}
 
+	/**
+	 * Sobrecarga para definir cómo convertir filas del cursor Oracle en objetos
+	 * {@link clsVehicle}.
+	 *
+	 * @return mapper reutilizable para consultas
+	 */
+	private RowMapper<clsVehicle> opVehicleRowMapper() {
+		return (rs, rowNum) -> opToObject(rs);
+	}
+
+	/**
+	 * Convierte un entero en un parámetro para Oracle.
+	 *
+	 * @param prmId Id del vehículo
+	 * @return parámetros compatibles con el procedure
+	 */
+	private MapSqlParameterSource opToId(int prmId){
+		return new MapSqlParameterSource().addValue("P_VEH_ID", prmId);
+	}
+	// endregion
+
+	// region PROCEDURES
+	public void  opRegisterVehicle (clsVehicle prmVehicle)throws  excDatabaseException{
+		try {
+			attSpRegisterVehicle.execute(opToParams(prmVehicle));
+		} catch (Exception e) {
+			throw new excDatabaseException(e.getMessage());
+		}
+	}
+
+	public void  opUpdateVehicle(clsVehicle prmVehicle){
+		try {
+			attSpUpdateVehicle.execute(opToParams(prmVehicle));
+		} catch (Exception e) {
+			throw new excDatabaseException(e.getMessage());
+		}
+	}
+
+	public void  opDisableVehicle(int prmId){
+		try {
+			attSpDisableVehicle.execute(opToId(prmId));
+		} catch (Exception e) {
+			throw new excDatabaseException(e.getMessage());
+		}
+	}
+
+	public boolean  opVehicleExist(int prmId){
+		try {
+			Number varResult = attFnVehicleExist.executeFunction(Number.class,opToId(prmId));
+			return varResult != null && varResult.intValue() == 1;
+		} catch (Exception e) {
+			throw new excDatabaseException(e.getMessage());
+		}
+	}
+
+	public clsVehicle  opGetVehicleById(int prmId){
+
+		clsVehicle varVehicle = new clsVehicle();
+		try {
+			Map<String,Object> varResult = attFnGetVehicleById.execute(opToId(prmId));
+			@SuppressWarnings("unchecked")
+			Map<String, Object> varVehicleMap = (Map<String, Object>) varResult.get("return");
+			if(varVehicleMap == null )return null;
+			varVehicle.setAttVehicleId(((Number)varVehicleMap.get("VEH_ID")).intValue());
+			varVehicle.setAttYear(((Number)varVehicleMap.get("VEH_YEAR")).intValue());
+			varVehicle.setAttBodyType((String)varVehicleMap.get("VEH_BODY_TYPE"));
+			varVehicle.setAttBrand((String)varVehicleMap.get("VEH_BRAND"));
+			varVehicle.setAttCategory((String)varVehicleMap.get("VEH_CATEGORY"));
+			varVehicle.setAttFuelType((String)varVehicleMap.get("VEH_FUEL_TYPE"));
+			varVehicle.setAttModel((String)varVehicleMap.get("VEH_MODEL"));
+			varVehicle.setAttState((String)varVehicleMap.get("VEH_STATE"));
+		} catch (Exception e) {
+			throw new excDatabaseException(e.getMessage());
+		}
+
+		return varVehicle;
+	}
+
+	public List<clsVehicle>  opGetAllVehicles(){
+		try {
+			Map<String, Object> varResult = attFnGetAllVehicles.execute();
+			@SuppressWarnings("unchecked")
+			List<clsVehicle> varVehicles = (List<clsVehicle>) varResult.get("return");
+			return varVehicles!=null? varVehicles: List.of();
+		} catch (Exception e) {
+			throw new excDatabaseException(e.getMessage());
+		}
+	}
+	// endregion
 }
