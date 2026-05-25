@@ -12,10 +12,6 @@ import org.springframework.jdbc.core.simple.SimpleJdbcCall;
 import org.springframework.stereotype.Repository;
 
 import edu.unicauca.dsantiago135.concesionaria.Error.excDatabaseException;
-import edu.unicauca.dsantiago135.concesionaria.Error.excDuplicateDataException;
-import edu.unicauca.dsantiago135.concesionaria.Error.excNotFoundException;
-import edu.unicauca.dsantiago135.concesionaria.Error.excOperationNotAllowedException;
-import edu.unicauca.dsantiago135.concesionaria.Error.excValidationException;
 import edu.unicauca.dsantiago135.concesionaria.Model.clsVehicle;
 
 @Repository
@@ -126,48 +122,71 @@ public class VehicleRepository {
 	// endregion
 
 	// region PROCEDURES
-	public void  opRegisterVehicle (clsVehicle prmVehicle)throws  excDatabaseException, excDuplicateDataException, excValidationException{
-		attSpRegisterVehicle.execute(opToParams(prmVehicle));
+	public void  opRegisterVehicle (clsVehicle prmVehicle)throws  excDatabaseException{
+		try {
+			attSpRegisterVehicle.execute(opToParams(prmVehicle));
+		} catch (Exception e) {
+			throw new excDatabaseException(e.getMessage());
+		}
 	}
 
-	public void  opUpdateVehicle(clsVehicle prmVehicle)throws excDatabaseException, excNotFoundException, excValidationException{
-		attSpUpdateVehicle.execute(opToParams(prmVehicle));
+	public void  opUpdateVehicle(clsVehicle prmVehicle){
+		try {
+			attSpUpdateVehicle.execute(opToParams(prmVehicle));
+		} catch (Exception e) {
+			throw new excDatabaseException(e.getMessage());
+		}
 	}
 
-	public void  opDisableVehicle(int prmId)throws excDatabaseException, excNotFoundException, excOperationNotAllowedException{
-		attSpDisableVehicle.execute(opToId(prmId));
+	public void  opDisableVehicle(int prmId){
+		try {
+			attSpDisableVehicle.execute(opToId(prmId));
+		} catch (Exception e) {
+			throw new excDatabaseException(e.getMessage());
+		}
 	}
 
-	public boolean  opVehicleExist(int prmId)throws excDatabaseException{
-		Boolean varResult = attFnVehicleExist.executeFunction(Boolean.class,opToId(prmId));
-		return Boolean.TRUE.equals(varResult);
+	public boolean  opVehicleExist(int prmId){
+		try {
+			Number varResult = attFnVehicleExist.executeFunction(Number.class,opToId(prmId));
+			return varResult != null && varResult.intValue() == 1;
+		} catch (Exception e) {
+			throw new excDatabaseException(e.getMessage());
+		}
 	}
 
-	public clsVehicle  opGetVehicleById(int prmId)throws excDatabaseException, excNotFoundException{
+	public clsVehicle  opGetVehicleById(int prmId){
 
 		clsVehicle varVehicle = new clsVehicle();
-		Map<String,Object> varResult = attFnGetVehicleById.execute(opToId(prmId));
-		@SuppressWarnings("unchecked")
-		Map<String, Object> varVehicleMap = (Map<String, Object>) varResult.get("return");
-		if(varVehicleMap == null )return null;
-		varVehicle.setAttVehicleId(((Number)varVehicleMap.get("VEH_ID")).intValue());
-		varVehicle.setAttYear(((Number)varVehicleMap.get("VEH_YEAR")).intValue());
-		varVehicle.setAttBodyType((String)varVehicleMap.get("VEH_BODY_TYPE"));
-		varVehicle.setAttBrand((String)varVehicleMap.get("VEH_BRAND"));
-		varVehicle.setAttCategory((String)varVehicleMap.get("VEH_CATEGORY"));
-		varVehicle.setAttFuelType((String)varVehicleMap.get("VEH_FUEL_TYPE"));
-		varVehicle.setAttModel((String)varVehicleMap.get("VEH_MODEL"));
-		varVehicle.setAttState((String)varVehicleMap.get("VEH_STATE"));
+		try {
+			Map<String,Object> varResult = attFnGetVehicleById.execute(opToId(prmId));
+			@SuppressWarnings("unchecked")
+			Map<String, Object> varVehicleMap = (Map<String, Object>) varResult.get("return");
+			if(varVehicleMap == null )return null;
+			varVehicle.setAttVehicleId(((Number)varVehicleMap.get("VEH_ID")).intValue());
+			varVehicle.setAttYear(((Number)varVehicleMap.get("VEH_YEAR")).intValue());
+			varVehicle.setAttBodyType((String)varVehicleMap.get("VEH_BODY_TYPE"));
+			varVehicle.setAttBrand((String)varVehicleMap.get("VEH_BRAND"));
+			varVehicle.setAttCategory((String)varVehicleMap.get("VEH_CATEGORY"));
+			varVehicle.setAttFuelType((String)varVehicleMap.get("VEH_FUEL_TYPE"));
+			varVehicle.setAttModel((String)varVehicleMap.get("VEH_MODEL"));
+			varVehicle.setAttState((String)varVehicleMap.get("VEH_STATE"));
+		} catch (Exception e) {
+			throw new excDatabaseException(e.getMessage());
+		}
 
 		return varVehicle;
 	}
 
-	public List<clsVehicle>  opGetAllVehicles()throws excDatabaseException{
-		Map<String, Object> varResult = attFnGetAllVehicles.execute();
-		@SuppressWarnings("unchecked")
-		List<clsVehicle> varVehicles = (List<clsVehicle>) varResult.get("return");
-		return varVehicles!=null? varVehicles: List.of();
+	public List<clsVehicle>  opGetAllVehicles(){
+		try {
+			Map<String, Object> varResult = attFnGetAllVehicles.execute();
+			@SuppressWarnings("unchecked")
+			List<clsVehicle> varVehicles = (List<clsVehicle>) varResult.get("return");
+			return varVehicles!=null? varVehicles: List.of();
+		} catch (Exception e) {
+			throw new excDatabaseException(e.getMessage());
+		}
 	}
 	// endregion
-
 }

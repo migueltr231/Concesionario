@@ -12,9 +12,6 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
 import edu.unicauca.dsantiago135.concesionaria.Error.excDatabaseException;
-import edu.unicauca.dsantiago135.concesionaria.Error.excDuplicateDataException;
-import edu.unicauca.dsantiago135.concesionaria.Error.excNotFoundException;
-import edu.unicauca.dsantiago135.concesionaria.Error.excValidationException;
 import edu.unicauca.dsantiago135.concesionaria.Model.clsDealership;
 import edu.unicauca.dsantiago135.concesionaria.Model.clsEmployee;
 import edu.unicauca.dsantiago135.concesionaria.Model.clsSalesGoal;
@@ -136,63 +133,95 @@ public class SalesGoalRepository {
 	// endregion
 
 	// region PROCEDURES
-	public void opRegisterSalesGoal(clsSalesGoal prmSalesGoal)throws excDatabaseException, excDuplicateDataException, excValidationException{
-		attSpRegisterSalesGoal.execute(opToParams(prmSalesGoal));
+	public void opRegisterSalesGoal(clsSalesGoal prmSalesGoal){
+		try {
+			attSpRegisterSalesGoal.execute(opToParams(prmSalesGoal));
+		} catch (excDatabaseException e) {
+			throw new excDatabaseException(e.getMessage());
+		}
 	}
 	
-	public void opUpdateSalesGoal(clsSalesGoal prmSalesGoal)throws excDatabaseException, excNotFoundException,excValidationException{
-		attSpUpdateSalesGoal.execute(opToParams(prmSalesGoal));
+	public void opUpdateSalesGoal(clsSalesGoal prmSalesGoal){
+		try {
+			attSpUpdateSalesGoal.execute(opToParams(prmSalesGoal));
+		} catch (excDatabaseException e) {
+			throw new excDatabaseException(e.getMessage());
+		}
 	}
 	
-	public void opDisableSalesGoal(int prmId)throws excDatabaseException,excNotFoundException, excValidationException{
-		attSpDisableSalesGoal.execute(opToId(prmId));
+	public void opDisableSalesGoal(int prmId){
+		try {
+			attSpDisableSalesGoal.execute(opToId(prmId));
+		} catch (excDatabaseException e) {
+			throw new excDatabaseException(e.getMessage());
+		}
 	}
 	
-	public void opCompleteSalesGoal(int prmId)throws excDatabaseException, excNotFoundException, excValidationException{
-		attSpCompleteSalesGoal.execute(opToId(prmId));
+	public void opCompleteSalesGoal(int prmId){
+		try {
+			attSpCompleteSalesGoal.execute(opToId(prmId));
+		} catch (excDatabaseException e) {
+			throw new excDatabaseException(e.getMessage());
+		}
 	}
 	
-	public boolean opSalesGoalExist(int prmId)throws excDatabaseException{
-		Boolean varResult = attFnSalesGoalExist.executeFunction(Boolean.class, opToId(prmId));
-		return Boolean.TRUE.equals(varResult);
+	public boolean opSalesGoalExist(int prmId){
+		try {
+			Number varResult = attFnSalesGoalExist.executeFunction(Number.class, opToId(prmId));
+			return varResult != null && varResult.intValue() == 1;
+		} catch (excDatabaseException e) {
+			throw new excDatabaseException(e.getMessage());
+		}
 	}
 	
-	public clsSalesGoal opGetSalesGoalById(int prmId)throws excDatabaseException, excNotFoundException{
+	public clsSalesGoal opGetSalesGoalById(int prmId){
 		clsSalesGoal varSalesGoal = new clsSalesGoal();
-		Map<String, Object> varResult = attFnGetSalesGoalById.execute(opToId(prmId));
-		@SuppressWarnings("unchecked")
-		Map<String, Object> varMapSalesGoal = (Map<String, Object>) varResult.get("return");
-		if(varMapSalesGoal == null )return null;
-		varSalesGoal.setAttSalesGoalId(((Number)(varMapSalesGoal.get("SGL_ID"))).intValue());
-		clsDealership varDealership = new clsDealership();
-		varDealership.setAttDealershipId(((Number)(varMapSalesGoal.get("DEA_ID"))).intValue());
-		clsEmployee varEmployee = new clsEmployee();
-		varEmployee.setAttEmployeeId(((Number)(varMapSalesGoal.get("EMP_ID"))).intValue());
-		varSalesGoal.setAttDealership(varDealership);
-		varSalesGoal.setAttEmployee(varEmployee);
-		
-		varSalesGoal.setAttStartDate((Date)(varMapSalesGoal.get("SGL_START_DATE")));
-		varSalesGoal.setAttEndDate((Date)(varMapSalesGoal.get("SGL_END_DATE")));
-		varSalesGoal.setAttGoalType((String)(varMapSalesGoal.get("SGL_GOAL_TYPE")));
-		varSalesGoal.setAttState((String)(varMapSalesGoal.get("SGL_STATE")));
-		varSalesGoal.setAttTargetValue(((Number)(varMapSalesGoal.get("SGL_TARGET_VALUE"))).doubleValue());
+		try {
+			Map<String, Object> varResult = attFnGetSalesGoalById.execute(opToId(prmId));
+			@SuppressWarnings("unchecked")
+			Map<String, Object> varMapSalesGoal = (Map<String, Object>) varResult.get("return");
+			if(varMapSalesGoal == null )return null;
+			varSalesGoal.setAttSalesGoalId(((Number)(varMapSalesGoal.get("SGL_ID"))).intValue());
+			clsDealership varDealership = new clsDealership();
+			varDealership.setAttDealershipId(((Number)(varMapSalesGoal.get("DEA_ID"))).intValue());
+			clsEmployee varEmployee = new clsEmployee();
+			varEmployee.setAttEmployeeId(((Number)(varMapSalesGoal.get("EMP_ID"))).intValue());
+			varSalesGoal.setAttDealership(varDealership);
+			varSalesGoal.setAttEmployee(varEmployee);
+			
+			varSalesGoal.setAttStartDate((Date)(varMapSalesGoal.get("SGL_START_DATE")));
+			varSalesGoal.setAttEndDate((Date)(varMapSalesGoal.get("SGL_END_DATE")));
+			varSalesGoal.setAttGoalType((String)(varMapSalesGoal.get("SGL_GOAL_TYPE")));
+			varSalesGoal.setAttState((String)(varMapSalesGoal.get("SGL_STATE")));
+			varSalesGoal.setAttTargetValue(((Number)(varMapSalesGoal.get("SGL_TARGET_VALUE"))).doubleValue());
+		} catch (excDatabaseException e) {
+			throw new excDatabaseException(e.getMessage());
+		}
 		return varSalesGoal;
 	}
 	
-	public List<clsSalesGoal> opGetAllSalesGoals()throws excDatabaseException{
-		Map<String, Object> varResult = attFnGetAllSalesGoals.execute();
-		@SuppressWarnings("unchecked")
-		List<clsSalesGoal> varSalesGoal = (List<clsSalesGoal>) varResult.get("return");
-		return varSalesGoal != null? varSalesGoal: List.of();
+	public List<clsSalesGoal> opGetAllSalesGoals(){
+		try {
+			Map<String, Object> varResult = attFnGetAllSalesGoals.execute();
+			@SuppressWarnings("unchecked")
+			List<clsSalesGoal> varSalesGoal = (List<clsSalesGoal>) varResult.get("return");
+			return varSalesGoal != null? varSalesGoal: List.of();
+		} catch (excDatabaseException e) {
+			throw new excDatabaseException(e.getMessage());
+		}
 	}
 
-	public List<clsSalesGoal> opGetSalesGoalsByState(String prmState)throws excDatabaseException, excValidationException{
-		MapSqlParameterSource varParams = new MapSqlParameterSource();
-		varParams.addValue("P_SGL_STATE", prmState);
-		Map<String, Object> varResult = attFnGetSalesGoalsByState.execute(varParams);
-		@SuppressWarnings("unchecked")
-		List<clsSalesGoal> varSalesGoal = (List<clsSalesGoal>) varResult.get("return");
-		return varSalesGoal != null? varSalesGoal: List.of();
+	public List<clsSalesGoal> opGetSalesGoalsByState(String prmState){
+		try {
+			MapSqlParameterSource varParams = new MapSqlParameterSource();
+			varParams.addValue("P_SGL_STATE", prmState);
+			Map<String, Object> varResult = attFnGetSalesGoalsByState.execute(varParams);
+			@SuppressWarnings("unchecked")
+			List<clsSalesGoal> varSalesGoal = (List<clsSalesGoal>) varResult.get("return");
+			return varSalesGoal != null? varSalesGoal: List.of();
+		} catch (excDatabaseException e) {
+			throw new excDatabaseException(e.getMessage());
+		}
 	}
 	// endregion
 

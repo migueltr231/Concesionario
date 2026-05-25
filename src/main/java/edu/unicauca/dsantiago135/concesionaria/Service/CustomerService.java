@@ -1,6 +1,5 @@
 package edu.unicauca.dsantiago135.concesionaria.Service;
 
-
 import java.util.HashMap;
 import java.util.List;
 
@@ -17,31 +16,24 @@ import edu.unicauca.dsantiago135.concesionaria.Repository.CustomerRepository;
 public class CustomerService {
 
     private final CustomerRepository attCustomerRepository;
-    private HashMap<Integer, clsCustomer> attCustomers;
+    private HashMap<Integer, clsCustomer> attCustomers = new HashMap<>();
 
     public CustomerService(CustomerRepository prmCustomerRepository){
         this.attCustomerRepository = prmCustomerRepository;
     }
 
-    public void opRegisterCustomer(int prmId, String prmName, String prmEmail, String prmPhone, String prmState)
-    throws excDatabaseException, excDuplicateDataException, excValidationException{
-        if(prmId <= 0) throw new excValidationException("Error: Id negativo");
-        if(String.valueOf(prmId).length() != 10) throw new excValidationException("Error: Id vacío o incompleto");
+    public void opRegisterCustomer(int prmId, String prmName, String prmEmail, String prmPhone, String prmState){
+        clsValidations.opValidateId(prmId);
 
-        if(attCustomers.containsKey(prmId)) throw new excDuplicateDataException("Cliente ya registrado");
+        if (attCustomerRepository.opCustomerExist(prmId))
+            throw new excDuplicateDataException("Cliente ya registrado");
 
-        if(prmName == null || prmName.isBlank()) throw new excValidationException("Error: Nombre vacío o nulo");
-        if(!prmName.matches("^[A-Za-zÁÉÍÓÚáéíóúÑñ ]+$")) throw new excValidationException("Error: caracteres no permitidos en el nombre");
-        if(prmName.length() < 3 || prmName.length() > 60) throw new excValidationException("Error: Nombre fuera del rango");
+        clsValidations.opValidateName(prmName, 3, 60);
+        clsValidations.opValidateEmail(prmEmail);
+        clsValidations.opValidatePhone(prmPhone);
+        clsValidations.opValidateState(prmState);
 
-        if(prmEmail == null || prmEmail.isBlank()) throw new excValidationException("Error: Email vacío o nulo");
-        if(!prmEmail.matches("^[A-Za-z0-9._%+-]+@(gmail|hotmail)\\.com$")) throw new excValidationException("Error: Email no cumple especificaiones de nombrado");
-
-        if(prmPhone == null || !prmPhone.matches("^\\d{10}$")) throw new excValidationException("Error: Teléfono con caracteres no numéricos o nulo");
-
-        if(!prmState.equals("active") && !prmState.equals("inactive")) throw new excValidationException("Error: Estado no permitido");
-
-        clsCustomer varCustomer= new clsCustomer();
+        clsCustomer varCustomer = new clsCustomer();
         varCustomer.setAttCustomerId(prmId);
         varCustomer.setAttName(prmName);
         varCustomer.setAttEmail(prmEmail);
@@ -49,73 +41,83 @@ public class CustomerService {
         varCustomer.setAttState(prmState);
         try {
             attCustomerRepository.opRegisterCustomer(varCustomer);
-            attCustomers.put(prmId, varCustomer);
         } catch (excDatabaseException e) {
-            throw new excDatabaseException("Error en la base de datos al registrar cliente: "+ e.getMessage());
+            throw new excDatabaseException("Error al registrar cliente: ", e);
         }
+        attCustomers.put(prmId, varCustomer);
     }
 
-    public void opUpdateCustomer(int prmId, String prmName, String prmPhone, String prmEmail)throws excDatabaseException, excNotFoundException, excValidationException{
-        if(prmId <= 0) throw new excValidationException("Error: Id negativo");
-        if(String.valueOf(prmId).length() != 10) throw new excValidationException("Error: Id vacío o incompleto");
+    public void opUpdateCustomer(int prmId, String prmName, String prmPhone, String prmEmail){
+        clsValidations.opValidateId(prmId);
 
-        if(!attCustomerRepository.opCustomerExist(prmId)) throw new excNotFoundException("Cliente no encontrado");
-        if(prmName != null){
-            if(prmName.isBlank()) throw new excValidationException("Error: Nombre vacío");
-            if(!prmName.matches("^[A-Za-zÁÉÍÓÚáéíóúÑñ ]+$")) throw new excValidationException("Error: caracteres no permitidos en el nombre");
-            if(prmName.length() < 3 || prmName.length() > 60) throw new excValidationException("Error: Nombre fuera del rango");
-        }
-        if(prmEmail != null && prmEmail.isBlank()) throw new excValidationException("Error: Email vacío");
-        if(!prmEmail.matches("^[A-Za-z0-9._%+-]+@(gmail|hotmail)\\.com$")) throw new excValidationException("Error: Email no cumple especificaiones de nombrado");
+        if (!attCustomerRepository.opCustomerExist(prmId))
+            throw new excNotFoundException("Cliente no encontrado");
 
-        if(prmPhone != null && !prmPhone.matches("^\\d{10}$")) throw new excValidationException("Error: Teléfono con caracteres no numéricos ");
+        if (prmName != null)
+            clsValidations.opValidateName(prmName, 3, 60);
+        if (prmEmail != null)
+            clsValidations.opValidateEmail(prmEmail);
+        if (prmPhone != null)
+            clsValidations.opValidatePhone(prmPhone);
 
+        clsCustomer varCustomer = attCustomers.get(prmId);
+        if (varCustomer == null)
+            varCustomer = attCustomerRepository.opGetCustomerById(prmId);
+        if (prmName != null)
+            varCustomer.setAttName(prmName);
+        if (prmEmail != null)
+            varCustomer.setAttEmail(prmEmail);
+        if (prmPhone != null)
+            varCustomer.setAttPhone(prmPhone);
         try {
-            clsCustomer varCustomer = attCustomers.get(prmId);
-            if(varCustomer == null) varCustomer = attCustomerRepository.opGetCustomerById(prmId);
-            if(prmName!= null)varCustomer.setAttName(prmName);
-            if(prmEmail!= null)varCustomer.setAttEmail(prmEmail);
-            if(prmPhone!= null)varCustomer.setAttPhone(prmPhone);
             attCustomerRepository.opUpdateCustomer(varCustomer);
-            attCustomers.put(prmId, varCustomer);
         } catch (excDatabaseException e) {
-            throw new excDatabaseException("Error en la base de datos al actualizar cliente: "+ e.getMessage());
+            throw new excDatabaseException("Error al actualizar cliente: " , e);
         }
+        attCustomers.put(prmId, varCustomer);
     }
-    
-    public void opDisableCustomer(int prmId)throws excDatabaseException, excNotFoundException{
+
+    public void opDisableCustomer(int prmId){
+        clsValidations.opValidateId(prmId);
+        clsCustomer varCustomer = attCustomers.get(prmId);
         try {
-            clsCustomer varCustomer = attCustomers.get(prmId);
-            if(varCustomer == null) varCustomer = attCustomerRepository.opGetCustomerById(prmId);
-            if(varCustomer == null) throw new excNotFoundException("Cliente no encontrado");
+            if (varCustomer == null)
+                varCustomer = attCustomerRepository.opGetCustomerById(prmId);
+            if (varCustomer == null)
+                throw new excNotFoundException("Cliente no encontrado");
             attCustomerRepository.opDisableCustomer(prmId);
             varCustomer.setAttState("inactive");
-            attCustomers.put(prmId, varCustomer);
+        } catch (excNotFoundException e) {
+            throw e;
         } catch (excDatabaseException e) {
-            throw new excDatabaseException("Error al inactivar al cliente: "+ e.getMessage());
+            throw new excDatabaseException("Error al inactivar al cliente: " , e);
         }
+        attCustomers.put(prmId, varCustomer);
     }
-    
-    public clsCustomer opGetCustomerById(int prmId)throws excDatabaseException, excNotFoundException{
+
+    public clsCustomer opGetCustomerById(int prmId){
+
+        clsValidations.opValidateId(prmId);
         clsCustomer varCustomer = attCustomers.get(prmId);
-        if (varCustomer == null){
+        if (varCustomer == null) {
             try {
                 varCustomer = attCustomerRepository.opGetCustomerById(prmId);
-            } catch (excDatabaseException e ) {
-                throw new excDatabaseException("Error en la base de datos: "+e.getMessage());
+            } catch (excDatabaseException e) {
+                throw new excDatabaseException("Error al obtener cliente: " , e);
             }
         }
 
-        if (varCustomer == null) throw new excNotFoundException("Cliente no encontrado");
+        if (varCustomer == null)
+            throw new excNotFoundException("Cliente no encontrado");
         return varCustomer;
     }
-    
-    public List<clsCustomer> opGetAllCustomers()throws excDatabaseException{
-        List<clsCustomer> varCustomers = null; 
+
+    public List<clsCustomer> opGetAllCustomers() {
+        List<clsCustomer> varCustomers = null;
         try {
             varCustomers = attCustomerRepository.opGetAllCustomers();
         } catch (excDatabaseException e) {
-            throw new excDatabaseException("Error en la base de datos: "+e.getMessage());
+            throw new excDatabaseException("Error al obtener clientes: " , e);
         }
         return varCustomers;
     }

@@ -117,7 +117,7 @@ public class DealershipRepository {
 	// endregion
 
 	// region PROCEDURES
-	public void opRegisterDealership(clsDealership prmDealership)throws excDatabaseException{
+	public void opRegisterDealership(clsDealership prmDealership){
 		try {
 			attSpRegisterDealership.execute(opToParams(prmDealership));
 		} catch (Exception e) {
@@ -125,7 +125,7 @@ public class DealershipRepository {
 		}
 	}
 
-	public void opUpdateDealership(clsDealership prmDealership)throws excDatabaseException{
+	public void opUpdateDealership(clsDealership prmDealership){
 		try {
 			attSpUpdateDealership.execute(opToParams(prmDealership));
 		} catch (Exception e) {
@@ -133,7 +133,7 @@ public class DealershipRepository {
 		}
 	}
 
-	public void opDisableDealership(int prmId)throws excDatabaseException{
+	public void opDisableDealership(int prmId){
 		try {
 			attSpDisableDealership.execute(opToId(prmId));
 		} catch (Exception e) {
@@ -141,16 +141,16 @@ public class DealershipRepository {
 		}
 	}
 
-	public boolean opDealershipExist(int prmId)throws excDatabaseException{
+	public boolean opDealershipExist(int prmId)  {
 		try {
-			Boolean varResult = attFnDealershipExist.executeFunction(Boolean.class, opToId(prmId));
-			return Boolean.TRUE.equals(varResult);
+			Number varResult = attFnDealershipExist.executeFunction(Number.class, opToId(prmId));
+			return varResult != null && varResult.intValue() == 1;
 		} catch (Exception e) {
 			throw new excDatabaseException(e.getMessage());
 		}
 	}
 
-	public clsDealership opGetDealershipById(int prmId)throws excDatabaseException{
+	public clsDealership opGetDealershipById(int prmId){
 		try {
 			clsDealership varDealership = new  clsDealership();
 			Map<String, Object> varResult = attFnGetDealershipById.execute(opToId(prmId));
@@ -169,7 +169,7 @@ public class DealershipRepository {
 		}
 	}
 
-	public List<clsDealership> opGetAllDealership()throws excDatabaseException{
+	public List<clsDealership> opGetAllDealership(){
 		try {
 			Map<String, Object> varResult = attFnGetAllDealership.execute();
 			@SuppressWarnings("unchecked")

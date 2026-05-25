@@ -2,6 +2,7 @@ package edu.unicauca.dsantiago135.concesionaria.Controller;
 
 import org.springframework.stereotype.Component;
 
+import edu.unicauca.dsantiago135.concesionaria.Error.excDatabaseException;
 import edu.unicauca.dsantiago135.concesionaria.Model.*;
 import edu.unicauca.dsantiago135.concesionaria.Service.*;
 
@@ -11,7 +12,7 @@ import java.util.List;
 @Component
 public class clsController {
 
-//region Attributes
+    // region Attributes
     private final CustomerService attCustomerService;
     private final EmployeeService attEmployeeService;
     private final DealershipService attDealershipService;
@@ -19,10 +20,12 @@ public class clsController {
     private final UnitService attUnitService;
     private final SaleService attSaleService;
     private final SalesGoalService attSalesGoalService;
-//endregion
+    // endregion
 
-    public clsController(CustomerService prmCustomerService, EmployeeService prmEmployeeService,DealershipService prmDealershipService,
-                        VehicleService prmVehicleService, UnitService prmUnitService, SaleService prmSaleService, SalesGoalService prmSalesGoalService) {
+    public clsController(CustomerService prmCustomerService, EmployeeService prmEmployeeService,
+            DealershipService prmDealershipService,
+            VehicleService prmVehicleService, UnitService prmUnitService, SaleService prmSaleService,
+            SalesGoalService prmSalesGoalService) {
         this.attCustomerService = prmCustomerService;
         this.attEmployeeService = prmEmployeeService;
         this.attDealershipService = prmDealershipService;
@@ -32,152 +35,110 @@ public class clsController {
         this.attSalesGoalService = prmSalesGoalService;
     }
 
-
-    public void opRegisterDealership(int prmOUID, String prmName, String prmState, String prmAddress, String prmPhone) 
-    throws RuntimeException{
-        try {
-            attDealershipService.opRegisterDealership(prmOUID, prmName, prmState, prmAddress, prmPhone);
-        } catch (RuntimeException e) {
-            throw new RuntimeException(e);
-        }
+    public void opRegisterDealership(int prmId, String prmName, String prmState, String prmAddress, String prmPhone) {
+        attDealershipService.opRegisterDealership(prmId, prmName, prmState, prmAddress, prmPhone);
     }
 
-    public boolean opRegisterEmployee(int prmOUID, String prmName, String prmState, String prmPhone, double prmSalary, Date prmHireDate, String prmRole) {
-    
+    public void opRegisterEmployee(int prmIdEmployee, int prmIdDealership, String prmName, String prmState,String prmPhone, double prmSalary, Date prmHireDate, String prmRole) {
+        attEmployeeService.opRegisterEmployee(prmIdEmployee, prmIdDealership, prmName, prmPhone, prmSalary, null,prmRole, prmState);
+    }
+
+    public void opRegisterCustomer(int prmId, String prmName, String prmState, String prmPhone, String prmEmail){
+        attCustomerService.opRegisterCustomer(prmId, prmName, prmEmail, prmPhone, prmState);
+    }
+
+    public boolean opRegisterUnit(int prmIdVehicle, int prmIdUnit, String prmState, String prmLicensePlate,
+            String prmColor, int prmMileage, Date prmDateEntry, String prmCondition) {
+
         return false;
     }
 
-    public void opRegisterCustomer(int prmOUID, String prmName, String prmState, String prmPhone, String prmEmail)
-    throws RuntimeException {
-        try{
-            attCustomerService.opRegisterCustomer(prmOUID, prmName, prmEmail, prmPhone, prmState);
-        }catch(Exception e){
-            throw new RuntimeException(e);
-        }
+    public void opRegisterVehicle(int prmId, String prmState, String prmBrand, String prmModel, int prmYear,String prmBodyType, String prmFuelType, String prmCategory){
+        attVehicleService.opRegisterVehicle(prmId, prmState, prmBrand, prmModel, prmYear, prmBodyType, prmFuelType,prmCategory);
     }
 
-    public boolean opRegisterUnit(int prmOUIDVehicle, int prmOUIDUnit, String prmState, String prmLicensePlate, String prmColor, int prmMileage, Date prmDateEntry, String prmCondition) {
+    public boolean opRegisterReservation(int prmIdSale, int prmIdCustomer, int prmIdEmployee, int prmIdUnit,
+            Date prmDateStart, double prmPrice, String prmStatus, Date prmDateEnd) {
 
-    return false;
+        return false;
     }
 
-    public boolean opRegisterVehicle(int prmOUID, String prmState, String prmBrand, String prmModel, int prmYear, String prmBodyType, String prmFuelType, String prmCategory) {
+    public boolean opRegisterSale(int prmIdSale, int prmIdCustomer, int prmIdEmployee, int prmIdUnit, Date prmDateStart,
+            double prmPrice, String prmStatus) {
 
-    return false;
+        return false;
     }
 
-    public boolean opRegisterReservation(int prmOUIDSale, int prmOUIDCustomer, int prmOUIDEmployee, int prmOUIDUnit, Date prmDateStart, double prmPrice, String prmStatus, Date prmDateEnd) {
-
-    return false;
+    public boolean opRegisterSalesGoal(int prmIdSaleGoal, int prmIdDealership, int prmIdEmployee, String prmGoalType,
+            double prmTargetValue, Date prmStartDate, Date prmEndDate, String prmState) {
+        return false;
     }
 
-    public boolean opRegisterSale(int prmOUIDSale, int prmOUIDCustomer, int prmOUIDEmployee, int prmOUIDUnit, Date prmDateStart, double prmPrice, String prmStatus) {
-
-    return false;
+    public void opUpdateDealership(int prmId, String prmName, String prmAddress, String prmPhone) {
+        attDealershipService.opUpdateDealership(prmId, prmName, prmAddress, prmPhone);
     }
 
-    public boolean opRegisterSalesGoal(int prmOUIDSaleGoal, int prmOUIDDealership, int prmOUIDEmployee, String prmGoalType, double prmTargetValue, Date prmStartDate, Date prmEndDate, String prmState) {
-    
-    return false;
+    public void opUpdateEmployee(int prmId, String prmName, String prmPhone, double prmSalary) {
+        attEmployeeService.opUpdateEmployee(prmId, prmName, prmPhone, prmSalary);
     }
 
-    public void opUpdateDealership(int prmOUID, String prmName, String prmAddress, String prmPhone) 
-    throws RuntimeException{
-        try {
-            attDealershipService.opUpdateDealership(prmOUID, prmName, prmAddress, prmPhone);
-        } catch (RuntimeException e) {
-            throw new RuntimeException(e);
-        }
+    public void opUpdateCustomer(int prmId, String prmName, String prmPhone, String prmEmail) {
+        attCustomerService.opUpdateCustomer(prmId, prmName, prmPhone, prmEmail);
     }
 
-    public boolean opUpdateEmployee(int prmOUID, String prmName, String prmPhone, double prmSalary) {
-    
-    return false;
+    public boolean opUpdateUnitState(int prmId, String prmState) {
+
+        return false;
     }
 
-    public void opUpdateCustomer(int prmOUID, String prmName, String prmPhone, String prmEmail) 
-    throws RuntimeException{
-        try {
-            attCustomerService.opUpdateCustomer(prmOUID, prmName, prmPhone, prmEmail);
-        } catch(Exception e){
-            throw new RuntimeException(e);
-        }
+    public boolean opUpdateSaleState(int prmId, String prmState) {
+
+        return false;
     }
 
-    public boolean opUpdateUnitState(int prmOUID, String prmState) {
-    
-    return false;
+    public boolean opCancelReservation(int prmId) {
+
+        return false;
     }
 
-    public boolean opUpdateSaleState(int prmOUID, String prmState) {
-    
-    return false;
+    public clsEmployee opGetEmployeeBy(int prmId) {
+        return attEmployeeService.opGetEmployeeById(prmId);
+
     }
 
-    public boolean opCancelReservation(int prmOUID) {
-    
-    return false;
+    public clsDealership opGetDealershipBy(int prmId) {
+        return attDealershipService.opGetDealershipById(prmId);
     }
 
-    public clsEmployee opGetEmployeeBy(int prmOUID){
+    public clsCustomer opGetCustomerBy(int prmId){
+        return attCustomerService.opGetCustomerById(prmId);
+    }
+
+    public clsUnit opGetUnitBy(int prmId) {
     
     return null;
     }
 
-    public clsDealership opGetDealershipBy(int prmOUID) 
-    throws RuntimeException{
-        try {
-            return attDealershipService.opGetDealershipById(prmOUID);
-        } catch (RuntimeException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public clsCustomer opGetCustomerBy(int prmOUID)
-    throws RuntimeException{
-        try {
-            return attCustomerService.opGetCustomerById(prmOUID);
-        } catch(Exception e){
-            throw new RuntimeException(e);
-        }
-    }
-
-    public clsUnit opGetUnitBy(int prmOUID) {
+    public clsSale opGetSaleBy(int prmId) {
     
     return null;
     }
 
-    public clsSale opGetSaleBy(int prmOUID) {
+    public clsSalesGoal opGetSalesGoalBy(int prmId) {
     
     return null;
     }
 
-    public clsSalesGoal opGetSalesGoalBy(int prmOUID) {
-    
-    return null;
+    public List<clsDealership> opGetDealerships() {
+        return attDealershipService.opGetAllDealership();
     }
 
-    public List<clsDealership> opGetDealerships() 
-    throws RuntimeException{
-        try {
-            return attDealershipService.opGetAllDealership();
-        } catch (RuntimeException e) {
-            throw new RuntimeException(e);
-        }
+    public List<clsEmployee> opGetEmployees(){
+        return attEmployeeService.opGetAllEmployees();
     }
 
-    public List<clsEmployee> opGetEmployees() {
-    
-    return null;
-    }
-
-    public List<clsCustomer> opGetCustomers() 
-    throws RuntimeException{
-        try {
-            return attCustomerService.opGetAllCustomers();
-        } catch(Exception e){
-            throw new RuntimeException(e);
-        }
+    public List<clsCustomer> opGetCustomers() {
+        return attCustomerService.opGetAllCustomers();
     }
 
     public List<clsUnit> opGetInventory() {
@@ -210,54 +171,47 @@ public class clsController {
     return false;
     }
 
-    public void opDisableDealership(int prmOUID) 
-    throws RuntimeException{
-        try {
-            attDealershipService.opDisableDealership(prmOUID);
-        } catch (RuntimeException e) {
-            throw new  RuntimeException(e);
-        }
+    public void opDisableDealership(int prmId) {
+        attDealershipService.opDisableDealership(prmId);
+    } 
+
+    public void opDisableEmployee(int prmId) {
+        attEmployeeService.opDisableEmployee(prmId);
     }
 
-    public boolean opDisableEmployee(int prmOUID) {
-    
-    return false;
+    public void opDisableCustomer(int prmId) {
+        attCustomerService.opDisableCustomer(prmId);
     }
 
-    public void opDisableCustomer(int prmOUID) throws RuntimeException{
-        try {
-            attCustomerService.opDisableCustomer(prmOUID);
-        } catch(Exception e){
-            throw new RuntimeException(e);
-        }
+    public void opDisableVehicle(int prmId) {
+        attVehicleService.opDisableVehicle(prmId);
     }
 
-    public boolean opDisableVehicle(int prmOUID) {
-    
-    return false;
-    }
-
-    public boolean opDisableSalesGoal(int prmOUID) {
-    
-    return false;
-    }
-
-    public boolean opCompleteSale(int prmOUID) {
-    
-    return false;
-    }
-
-    public boolean opCompleteSalesGoal(int prmOUID) {
-    
-    return false;
-    }
-
-    public boolean opModifyEmployeeRole(){
+    public boolean opDisableSalesGoal(int prmId) {
 
         return false;
     }
 
-    public List<clsUnit> opGetInnventory(int prmOUID){
+    public boolean opCompleteSale(int prmId) {
+
+        return false;
+    }
+
+    public boolean opCompleteSalesGoal(int prmId) {
+
+        return false;
+    }
+
+    public boolean opModifyEmployeeRole() {
+
+        return false;
+    }
+
+    public List<clsUnit> opGetInnventory(int prmId) {
         return null;
+    }
+
+    public List<clsEmployee> opGetEmployeeByDealership(int prmId) {
+        return attEmployeeService.opGetEmployeesByDealership(prmId);
     }
 }

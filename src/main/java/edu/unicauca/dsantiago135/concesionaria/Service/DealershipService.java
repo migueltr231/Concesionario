@@ -14,113 +14,111 @@ import edu.unicauca.dsantiago135.concesionaria.Repository.DealershipRepository;
 
 @Service
 public class DealershipService {
-   private final DealershipRepository attDealershipRepository;
-   private HashMap<Integer, clsDealership> attDealerships;
 
-   public DealershipService(DealershipRepository prmDealershipRepository){
+   private final DealershipRepository attDealershipRepository;
+   private HashMap<Integer, clsDealership> attDealerships = new HashMap<>();
+
+   public DealershipService(DealershipRepository prmDealershipRepository) {
       this.attDealershipRepository = prmDealershipRepository;
    }
-   
-   public void opRegisterDealership (int prmId, String prmName, String prmState, String prmAddress, String prmPhone)
-   throws excDatabaseException, excDuplicateDataException, excValidationException{
-      if(prmId <= 0) throw new excValidationException("Error: Id negativo");
-      if(String.valueOf(prmId).length() != 10) throw new excValidationException("Error: Id vacío o incompleto");
 
-      if(attDealerships.containsKey(prmId)) throw new excDuplicateDataException("Error Concesionaria ya registrada.");
+   public void opRegisterDealership(int prmId, String prmName, String prmState, String prmAddress, String prmPhone){
+      clsValidations.opValidateId(prmId);
 
-      if(prmName == null || prmName.isBlank()) throw new excValidationException("Error: Nombre vacío o nulo");
-      if(!prmName.matches("^[A-Za-zÁÉÍÓÚáéíóúÑñ ]+$")) throw new excValidationException("Error: caracteres no permitidos en el nombre");
-      if(prmName.length() < 3 || prmName.length() > 40) throw new excValidationException("Error: Nombre fuera del rango");
+      if (attDealershipRepository.opDealershipExist(prmId))
+         throw new excDuplicateDataException("Error Concesionaria ya registrada.");
 
-      if(prmAddress == null || prmAddress.isBlank()) throw new excValidationException("Error: Email vacío o nulo");
+      clsValidations.opValidateName(prmName, 3, 40);
 
-      if(prmPhone == null || !prmPhone.matches("^\\d{10}$")) throw new excValidationException("Error: Teléfono con caracteres no numéricos o nulo");
+      if (prmAddress == null || prmAddress.isBlank())
+         throw new excValidationException("Error: Dirección vacía o nula");
 
-      if(!prmState.equals("active") && !prmState.equals("inactive")) throw new excValidationException("Error: Estado no permitido");
-      
+      clsValidations.opValidatePhone(prmPhone);
+      clsValidations.opValidateState(prmState);
+
       clsDealership varDealership = new clsDealership();
-         varDealership.setAttDealershipId(prmId);
-         varDealership.setAttName(prmName);
-         varDealership.setAttAddress(prmAddress);
-         varDealership.setAttPhone(prmPhone);
-         varDealership.setAttState(prmState);
-
+      varDealership.setAttDealershipId(prmId);
+      varDealership.setAttName(prmName);
+      varDealership.setAttAddress(prmAddress);
+      varDealership.setAttPhone(prmPhone);
+      varDealership.setAttState(prmState);
       try {
          attDealershipRepository.opRegisterDealership(varDealership);
-         attDealerships.put(prmId, varDealership);
       } catch (excDatabaseException e) {
-         throw new excDatabaseException("Error al registrar Concesionaria: " + e.getMessage());
+         throw new excDatabaseException("Error al registrar Concesionaria: " , e);
       }
+      attDealerships.put(prmId, varDealership);
    }
-   
-   public void opUpdateDealership (int prmId, String prmName, String prmAddress, String prmPhone)
-   throws excDatabaseException, excNotFoundException, excValidationException{
-      if(prmId <= 0) throw new excValidationException("Error: Id negativo");
-      if(String.valueOf(prmId).length() != 10) throw new excValidationException("Error: Id vacío o incompleto");
 
-      if(!attDealershipRepository.opDealershipExist(prmId)) throw new excNotFoundException("Concesionaria no encontrada");
+   public void opUpdateDealership(int prmId, String prmName, String prmAddress, String prmPhone){
+      clsValidations.opValidateId(prmId);
 
-      if (prmName != null){
-         if(prmName.isBlank()) throw new excValidationException("Error: Nombre vacío");
-         if(!prmName.matches("^[A-Za-zÁÉÍÓÚáéíóúÑñ ]+$")) throw new excValidationException("Error: caracteres no permitidos en el nombre");
-         if(prmName.length() < 3 || prmName.length() > 40) throw new excValidationException("Error: Nombre fuera del rango");
-      }
-      if(prmAddress != null && prmAddress.isBlank()) throw new excValidationException("Error: Email vacío");
+      if (!attDealershipRepository.opDealershipExist(prmId))
+         throw new excNotFoundException("Concesionaria no encontrada");
 
-      if(prmPhone != null && !prmPhone.matches("^\\d{10}$")) throw new excValidationException("Error: Teléfono con caracteres no numéricos");
+      if (prmName != null)
+         clsValidations.opValidateName(prmName, 3, 40);
+      if (prmAddress != null && prmAddress.isBlank())
+         throw new excValidationException("Error: Dirección vacía");
+      if (prmPhone != null)
+         clsValidations.opValidatePhone(prmPhone);
 
-      clsDealership varDealership = new clsDealership();
+      clsDealership varDealership = attDealerships.get(prmId);
+      if (varDealership == null)
+         varDealership = attDealershipRepository.opGetDealershipById(prmId);
+      if (prmName != null)
+         varDealership.setAttName(prmName);
+      if (prmAddress != null)
+         varDealership.setAttAddress(prmAddress);
+      if (prmPhone != null)
+         varDealership.setAttPhone(prmPhone);
       try {
-         varDealership = attDealerships.get(prmId);
-         if(varDealership == null ) varDealership = attDealershipRepository.opGetDealershipById(prmId);
-         if(prmName != null) varDealership.setAttName(prmName);
-         if(prmAddress !=null) varDealership.setAttAddress(prmAddress);
-         if(prmPhone!= null) varDealership.setAttPhone(prmPhone);
          attDealershipRepository.opUpdateDealership(varDealership);
-         attDealerships.put(prmId, varDealership);
       } catch (excDatabaseException e) {
-         throw new excDatabaseException("Error en la base de datos: "+ e.getMessage());
+         throw new excDatabaseException("Error al actualizar concesionaria: " , e);
       }
+      attDealerships.put(prmId, varDealership);
    }
-   
-   public void opDisableDealership (int prmId)
-   throws excDatabaseException, excNotFoundException, excValidationException{
-      if(prmId <= 0) throw new excValidationException("Error: Id negativo");
-      if(String.valueOf(prmId).length() != 10) throw new excValidationException("Error: Id vacío o incompleto");
+
+   public void opDisableDealership(int prmId){
+      clsValidations.opValidateId(prmId);
+      clsDealership varDealership = attDealerships.get(prmId);
       try {
-         clsDealership varDealership = attDealerships.get(prmId);
-         if(varDealership == null) varDealership = attDealershipRepository.opGetDealershipById(prmId);
-         if(varDealership == null) throw new excNotFoundException("Concesionaria no encontrada");
+         if (varDealership == null)
+            varDealership = attDealershipRepository.opGetDealershipById(prmId);
+         if (varDealership == null)
+            throw new excNotFoundException("Concesionaria no encontrada");
          attDealershipRepository.opDisableDealership(prmId);
          varDealership.setAttState("inactive");
-         attDealerships.put(prmId, varDealership);
-      } catch (Exception e) {
-         throw new excDatabaseException("Error en la base de datos: "+ e.getMessage());
+      } catch (excNotFoundException e) {
+         throw e;
+      } catch (excDatabaseException e) {
+         throw new excDatabaseException("Error al inactivar concesionaria: " , e);
       }
+      attDealerships.put(prmId, varDealership);
    }
-   
-   public clsDealership opGetDealershipById(int prmId)
-   throws excDatabaseException, excNotFoundException, excValidationException{
-      if(prmId <= 0) throw new excValidationException("Error: Id negativo");
-      if(String.valueOf(prmId).length() != 10) throw new excValidationException("Error: Id vacío o incompleto");
+
+   public clsDealership opGetDealershipById(int prmId){
+      clsValidations.opValidateId(prmId);
       clsDealership varDealership = attDealerships.get(prmId);
-      try{
-         if(varDealership == null) varDealership = attDealershipRepository.opGetDealershipById(prmId);
-      }catch (excDatabaseException e ){
-         throw new excDatabaseException("Error en la base de datos: "+ e.getMessage());
+      try {
+         if (varDealership == null)
+            varDealership = attDealershipRepository.opGetDealershipById(prmId);
+      } catch (excDatabaseException e) {
+         throw new excDatabaseException("Error al obtener concesionaria: " , e);
       }
-      
-      if(varDealership == null) throw new excNotFoundException("Concesionaria no encontrada");
+      if (varDealership == null)
+         throw new excNotFoundException("Concesionaria no encontrada");
       return varDealership;
    }
-   
-   public List<clsDealership> opGetAllDealership(){
+
+   public List<clsDealership> opGetAllDealership() {
       List<clsDealership> varDealerships = null;
       try {
          varDealerships = attDealershipRepository.opGetAllDealership();
-     } catch (excDatabaseException e) {
-         throw new excDatabaseException("Error en la base de datos: "+e.getMessage());
-     }
+      } catch (excDatabaseException e) {
+         throw new excDatabaseException("Error al obtener concesionarias: " , e);
+      }
       return varDealerships;
    }
 }

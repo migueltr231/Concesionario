@@ -108,7 +108,7 @@ public class CustomerRepository {
 	// endregion
 
 	// region PROCEDURES
-	public void opRegisterCustomer(clsCustomer prmCustomer) throws excDatabaseException{
+	public void opRegisterCustomer(clsCustomer prmCustomer) {
 		try {
 			attSpRegisterCustomer.execute(opToParams(prmCustomer));
 		} catch (Exception e) {
@@ -116,7 +116,7 @@ public class CustomerRepository {
 		}
 	}
 
-	public void opUpdateCustomer(clsCustomer prmCustomer)throws excDatabaseException{
+	public void opUpdateCustomer(clsCustomer prmCustomer){
 		try {
 			attSpUpdateCustomer.execute(opToParams(prmCustomer));
 		} catch (Exception e) {
@@ -124,7 +124,7 @@ public class CustomerRepository {
 		}
 	}
 
-	public void opDisableCustomer(int prmId)throws excDatabaseException{
+	public void opDisableCustomer(int prmId){
 		try {
 			attSpDisableCustomer.execute(opToId(prmId));
 		} catch (Exception e) {
@@ -132,16 +132,16 @@ public class CustomerRepository {
 		}
 	}
 
-	public boolean opCustomerExist(int prmId)throws excDatabaseException{
+	public boolean opCustomerExist(int prmId)  {
 		try {
-			Boolean varResult = attFnCustomerExist.executeFunction(Boolean.class,opToId(prmId));
-			return Boolean.TRUE.equals(varResult);
+			Number varResult = attFnCustomerExist.executeFunction(Number.class, opToId(prmId));
+			return varResult != null && varResult.intValue() == 1;
 		} catch (Exception e) {
 			throw new excDatabaseException(e.getMessage());
 		}
-	}
+  	}
 
-	public clsCustomer opGetCustomerById(int prmId)throws excDatabaseException{
+	public clsCustomer opGetCustomerById(int prmId){
 		try {
 		Map<String, Object> varResult =attFnGetCustomerById.execute(opToId(prmId));
 		@SuppressWarnings("unchecked")
@@ -159,7 +159,7 @@ public class CustomerRepository {
 		}
 	}
 
-	public List<clsCustomer> opGetAllCustomers() throws excDatabaseException{
+	public List<clsCustomer> opGetAllCustomers() {
 		try {
 			Map<String, Object> varResult = attFnGetAllCustomers.execute();
 			@SuppressWarnings("unchecked")
