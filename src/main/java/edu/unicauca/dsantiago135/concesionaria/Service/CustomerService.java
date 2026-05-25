@@ -25,9 +25,10 @@ public class CustomerService {
 
     public void opRegisterCustomer(int prmId, String prmName, String prmEmail, String prmPhone, String prmState)
     throws excDatabaseException, excDuplicateDataException, excValidationException{
-        
         if(prmId <= 0) throw new excValidationException("Error: Id negativo");
         if(String.valueOf(prmId).length() != 10) throw new excValidationException("Error: Id vacío o incompleto");
+
+        if(attCustomers.containsKey(prmId)) throw new excDuplicateDataException("Cliente ya registrado");
 
         if(prmName == null || prmName.isBlank()) throw new excValidationException("Error: Nombre vacío o nulo");
         if(!prmName.matches("^[A-Za-zÁÉÍÓÚáéíóúÑñ ]+$")) throw new excValidationException("Error: caracteres no permitidos en el nombre");
@@ -55,24 +56,26 @@ public class CustomerService {
     }
 
     public void opUpdateCustomer(int prmId, String prmName, String prmPhone, String prmEmail)throws excDatabaseException, excNotFoundException, excValidationException{
-        if(!attCustomerRepository.opCustomerExist(prmId)) throw new excNotFoundException("Cliente no encontrado");
-        
-        if(prmName == null || prmName.isBlank()) throw new excValidationException("Error: Nombre vacío o nulo");
-        if(!prmName.matches("^[A-Za-zÁÉÍÓÚáéíóúÑñ ]+$")) throw new excValidationException("Error: caracteres no permitidos en el nombre");
-        if(prmName.length() < 3 || prmName.length() > 60) throw new excValidationException("Error: Nombre fuera del rango");
+        if(prmId <= 0) throw new excValidationException("Error: Id negativo");
+        if(String.valueOf(prmId).length() != 10) throw new excValidationException("Error: Id vacío o incompleto");
 
-        if(prmEmail == null || prmEmail.isBlank()) throw new excValidationException("Error: Email vacío o nulo");
+        if(!attCustomerRepository.opCustomerExist(prmId)) throw new excNotFoundException("Cliente no encontrado");
+        if(prmName != null){
+            if(prmName.isBlank()) throw new excValidationException("Error: Nombre vacío");
+            if(!prmName.matches("^[A-Za-zÁÉÍÓÚáéíóúÑñ ]+$")) throw new excValidationException("Error: caracteres no permitidos en el nombre");
+            if(prmName.length() < 3 || prmName.length() > 60) throw new excValidationException("Error: Nombre fuera del rango");
+        }
+        if(prmEmail != null && prmEmail.isBlank()) throw new excValidationException("Error: Email vacío");
         if(!prmEmail.matches("^[A-Za-z0-9._%+-]+@(gmail|hotmail)\\.com$")) throw new excValidationException("Error: Email no cumple especificaiones de nombrado");
 
-        if(prmPhone == null || !prmPhone.matches("^\\d{10}$")) throw new excValidationException("Error: Teléfono con caracteres no numéricos o nulo");
+        if(prmPhone != null && !prmPhone.matches("^\\d{10}$")) throw new excValidationException("Error: Teléfono con caracteres no numéricos ");
 
         try {
             clsCustomer varCustomer = attCustomers.get(prmId);
             if(varCustomer == null) varCustomer = attCustomerRepository.opGetCustomerById(prmId);
-            if(varCustomer == null) throw new excNotFoundException("Cliente no encontrado");
-            varCustomer.setAttName(prmName);
-            varCustomer.setAttEmail(prmEmail);
-            varCustomer.setAttPhone(prmPhone);
+            if(prmName!= null)varCustomer.setAttName(prmName);
+            if(prmEmail!= null)varCustomer.setAttEmail(prmEmail);
+            if(prmPhone!= null)varCustomer.setAttPhone(prmPhone);
             attCustomerRepository.opUpdateCustomer(varCustomer);
             attCustomers.put(prmId, varCustomer);
         } catch (excDatabaseException e) {

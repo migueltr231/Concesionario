@@ -12,10 +12,6 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
 import edu.unicauca.dsantiago135.concesionaria.Error.excDatabaseException;
-import edu.unicauca.dsantiago135.concesionaria.Error.excDuplicateDataException;
-import edu.unicauca.dsantiago135.concesionaria.Error.excNotFoundException;
-import edu.unicauca.dsantiago135.concesionaria.Error.excOperationNotAllowedException;
-import edu.unicauca.dsantiago135.concesionaria.Error.excValidationException;
 import edu.unicauca.dsantiago135.concesionaria.Model.clsDealership;
 
 @Repository
@@ -121,45 +117,67 @@ public class DealershipRepository {
 	// endregion
 
 	// region PROCEDURES
-	public void opRegisterDealership(clsDealership prmDealership)throws excDatabaseException, excDuplicateDataException, excValidationException{
-		attSpRegisterDealership.execute(opToParams(prmDealership));
+	public void opRegisterDealership(clsDealership prmDealership)throws excDatabaseException{
+		try {
+			attSpRegisterDealership.execute(opToParams(prmDealership));
+		} catch (Exception e) {
+			throw new excDatabaseException(e.getMessage());
+		}
 	}
 
-	public void opUpdateDealership(clsDealership prmDealership)throws excDatabaseException, excNotFoundException, excValidationException{
-		attSpUpdateDealership.execute(opToParams(prmDealership));
+	public void opUpdateDealership(clsDealership prmDealership)throws excDatabaseException{
+		try {
+			attSpUpdateDealership.execute(opToParams(prmDealership));
+		} catch (Exception e) {
+			throw new excDatabaseException(e.getMessage());
+		}
 	}
 
-	public void opDisableDealership(int prmId)throws excDatabaseException, excNotFoundException, excOperationNotAllowedException{
-		attSpDisableDealership.execute(opToId(prmId));
+	public void opDisableDealership(int prmId)throws excDatabaseException{
+		try {
+			attSpDisableDealership.execute(opToId(prmId));
+		} catch (Exception e) {
+			throw new excDatabaseException(e.getMessage());
+		}
 	}
 
 	public boolean opDealershipExist(int prmId)throws excDatabaseException{
-		Boolean varResult = attFnDealershipExist.executeFunction(Boolean.class, opToId(prmId));
-		return Boolean.TRUE.equals(varResult);
+		try {
+			Boolean varResult = attFnDealershipExist.executeFunction(Boolean.class, opToId(prmId));
+			return Boolean.TRUE.equals(varResult);
+		} catch (Exception e) {
+			throw new excDatabaseException(e.getMessage());
+		}
 	}
 
-	public clsDealership opGetDealershipById(int prmId)throws excDatabaseException, excNotFoundException{
-		
-		clsDealership varDealership = new  clsDealership();
-		Map<String, Object> varResult = attFnGetDealershipById.execute(opToId(prmId));
-		@SuppressWarnings("unchecked")
-		Map<String, Object> varDealershipMap = (Map<String, Object>) varResult.get("return");
-		if(varDealershipMap == null )return null;
-		varDealership.setAttDealershipId(((Number) varDealershipMap.get("DEA_ID")).intValue());
-		varDealership.setAttName((String) varDealershipMap.get("DEA_NAME"));
-		varDealership.setAttPhone((String) varDealershipMap.get("DEA_PHONE"));
-		varDealership.setAttAddress((String) varDealershipMap.get("DEA_ADDRESS"));
-		varDealership.setAttState((String) varDealershipMap.get("DEA_STATE"));
+	public clsDealership opGetDealershipById(int prmId)throws excDatabaseException{
+		try {
+			clsDealership varDealership = new  clsDealership();
+			Map<String, Object> varResult = attFnGetDealershipById.execute(opToId(prmId));
+			@SuppressWarnings("unchecked")
+			Map<String, Object> varDealershipMap = (Map<String, Object>) varResult.get("return");
+			if(varDealershipMap == null )return null;
+			varDealership.setAttDealershipId(((Number) varDealershipMap.get("DEA_ID")).intValue());
+			varDealership.setAttName((String) varDealershipMap.get("DEA_NAME"));
+			varDealership.setAttPhone((String) varDealershipMap.get("DEA_PHONE"));
+			varDealership.setAttAddress((String) varDealershipMap.get("DEA_ADDRESS"));
+			varDealership.setAttState((String) varDealershipMap.get("DEA_STATE"));
 
-		return varDealership;
+			return varDealership;
+		} catch (Exception e) {
+			throw new excDatabaseException(e.getMessage());
+		}
 	}
 
 	public List<clsDealership> opGetAllDealership()throws excDatabaseException{
-		Map<String, Object> varResult = attFnGetAllDealership.execute();
-		@SuppressWarnings("unchecked")
-		List<clsDealership> varDealerships = (List<clsDealership>) varResult.get("return");
-		return varDealerships != null? varDealerships: List.of();
+		try {
+			Map<String, Object> varResult = attFnGetAllDealership.execute();
+			@SuppressWarnings("unchecked")
+			List<clsDealership> varDealerships = (List<clsDealership>) varResult.get("return");
+			return varDealerships != null? varDealerships: List.of();
+		} catch (Exception e) {
+			throw new excDatabaseException(e.getMessage());
+		}
 	}
 	// endregion
-
 }

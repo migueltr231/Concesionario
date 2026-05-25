@@ -33,9 +33,13 @@ public class clsController {
     }
 
 
-    public boolean opRegisterDealership(int prmOUID, String prmName, String prmState, String prmAddress, String prmPhone) {
-        
-        return false;
+    public void opRegisterDealership(int prmOUID, String prmName, String prmState, String prmAddress, String prmPhone) 
+    throws RuntimeException{
+        try {
+            attDealershipService.opRegisterDealership(prmOUID, prmName, prmState, prmAddress, prmPhone);
+        } catch (RuntimeException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public boolean opRegisterEmployee(int prmOUID, String prmName, String prmState, String prmPhone, double prmSalary, Date prmHireDate, String prmRole) {
@@ -43,8 +47,13 @@ public class clsController {
         return false;
     }
 
-    public boolean opRegisterCustomer(int prmOUID, String prmName, String prmState, String prmPhone, String prmEmail) {
-    return false;
+    public void opRegisterCustomer(int prmOUID, String prmName, String prmState, String prmPhone, String prmEmail)
+    throws RuntimeException {
+        try{
+            attCustomerService.opRegisterCustomer(prmOUID, prmName, prmEmail, prmPhone, prmState);
+        }catch(Exception e){
+            throw new RuntimeException(e);
+        }
     }
 
     public boolean opRegisterUnit(int prmOUIDVehicle, int prmOUIDUnit, String prmState, String prmLicensePlate, String prmColor, int prmMileage, Date prmDateEntry, String prmCondition) {
@@ -72,9 +81,13 @@ public class clsController {
     return false;
     }
 
-    public boolean opUpdateDealership(int prmOUID, String prmName, String prmAddress, String prmPhone) {
-    
-    return false;
+    public void opUpdateDealership(int prmOUID, String prmName, String prmAddress, String prmPhone) 
+    throws RuntimeException{
+        try {
+            attDealershipService.opUpdateDealership(prmOUID, prmName, prmAddress, prmPhone);
+        } catch (RuntimeException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public boolean opUpdateEmployee(int prmOUID, String prmName, String prmPhone, double prmSalary) {
@@ -82,9 +95,13 @@ public class clsController {
     return false;
     }
 
-    public boolean opUpdateCustomer(int prmOUID, String prmName, String prmPhone, String prmEmail) {
-    
-    return false;
+    public void opUpdateCustomer(int prmOUID, String prmName, String prmPhone, String prmEmail) 
+    throws RuntimeException{
+        try {
+            attCustomerService.opUpdateCustomer(prmOUID, prmName, prmPhone, prmEmail);
+        } catch(Exception e){
+            throw new RuntimeException(e);
+        }
     }
 
     public boolean opUpdateUnitState(int prmOUID, String prmState) {
@@ -107,13 +124,22 @@ public class clsController {
     return null;
     }
 
-    public clsDealership opGetDealershipBy(int prmOUID) {
-    
-    return null;
+    public clsDealership opGetDealershipBy(int prmOUID) 
+    throws RuntimeException{
+        try {
+            return attDealershipService.opGetDealershipById(prmOUID);
+        } catch (RuntimeException e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    public clsCustomer opGetCustomerBy(int prmOUID) {
-        return null;
+    public clsCustomer opGetCustomerBy(int prmOUID)
+    throws RuntimeException{
+        try {
+            return attCustomerService.opGetCustomerById(prmOUID);
+        } catch(Exception e){
+            throw new RuntimeException(e);
+        }
     }
 
     public clsUnit opGetUnitBy(int prmOUID) {
@@ -131,9 +157,13 @@ public class clsController {
     return null;
     }
 
-    public List<clsDealership> opGetDealerships() {
-    
-    return null;
+    public List<clsDealership> opGetDealerships() 
+    throws RuntimeException{
+        try {
+            return attDealershipService.opGetAllDealership();
+        } catch (RuntimeException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public List<clsEmployee> opGetEmployees() {
@@ -141,9 +171,13 @@ public class clsController {
     return null;
     }
 
-    public List<clsCustomer> opGetCustomers() {
-    
-    return null;
+    public List<clsCustomer> opGetCustomers() 
+    throws RuntimeException{
+        try {
+            return attCustomerService.opGetAllCustomers();
+        } catch(Exception e){
+            throw new RuntimeException(e);
+        }
     }
 
     public List<clsUnit> opGetInventory() {
@@ -176,9 +210,13 @@ public class clsController {
     return false;
     }
 
-    public boolean opDisableDealership(int prmOUID) {
-    
-    return false;
+    public void opDisableDealership(int prmOUID) 
+    throws RuntimeException{
+        try {
+            attDealershipService.opDisableDealership(prmOUID);
+        } catch (RuntimeException e) {
+            throw new  RuntimeException(e);
+        }
     }
 
     public boolean opDisableEmployee(int prmOUID) {
@@ -186,9 +224,12 @@ public class clsController {
     return false;
     }
 
-    public boolean opDisableCustomer(int prmOUID) {
-    
-    return false;
+    public void opDisableCustomer(int prmOUID) throws RuntimeException{
+        try {
+            attCustomerService.opDisableCustomer(prmOUID);
+        } catch(Exception e){
+            throw new RuntimeException(e);
+        }
     }
 
     public boolean opDisableVehicle(int prmOUID) {
