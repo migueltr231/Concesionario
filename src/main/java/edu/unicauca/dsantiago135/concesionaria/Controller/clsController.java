@@ -19,8 +19,6 @@ public class clsController {
     private final UnitService attUnitService;
     private final SaleService attSaleService;
     private final SalesGoalService attSalesGoalService;
-
-    private List<clsCustomer> attCustomers;
 //endregion
 
     public clsController(CustomerService prmCustomerService, EmployeeService prmEmployeeService,DealershipService prmDealershipService,
