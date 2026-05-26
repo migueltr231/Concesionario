@@ -44,7 +44,7 @@ public class DealershipRepository {
 		this.attFnDealershipExist = new SimpleJdbcCall(attJdbcTemplate). withCatalogName(attPkg)
 				.withFunctionName("FN_DEALERSHIP_EXIST");
 		this.attFnGetDealershipById = new SimpleJdbcCall(attJdbcTemplate). withCatalogName(attPkg)
-				.withFunctionName("FN_GET_DEALERSHIP_BY_ID");
+				.withFunctionName("FN_GET_DEALERSHIP_BY_ID").returningResultSet("return", opDealershipRowMapper());
 		this.attFnGetAllDealership = new SimpleJdbcCall(attJdbcTemplate). withCatalogName(attPkg)
 				.withFunctionName("FN_GET_ALL_DEALERSHIPS").returningResultSet("return", opDealershipRowMapper());
 	}
@@ -143,8 +143,8 @@ public class DealershipRepository {
 
 	public boolean opDealershipExist(int prmId)  {
 		try {
-			Number varResult = attFnDealershipExist.executeFunction(Number.class, opToId(prmId));
-			return varResult != null && varResult.intValue() == 1;
+			Boolean varResult = attFnDealershipExist.executeFunction(Boolean.class, opToId(prmId));
+			return Boolean.TRUE.equals(varResult);
 		} catch (Exception e) {
 			throw new excDatabaseException(e.getMessage());
 		}
@@ -152,22 +152,15 @@ public class DealershipRepository {
 
 	public clsDealership opGetDealershipById(int prmId){
 		try {
-			clsDealership varDealership = new  clsDealership();
 			Map<String, Object> varResult = attFnGetDealershipById.execute(opToId(prmId));
 			@SuppressWarnings("unchecked")
-			Map<String, Object> varDealershipMap = (Map<String, Object>) varResult.get("return");
-			if(varDealershipMap == null )return null;
-			varDealership.setAttDealershipId(((Number) varDealershipMap.get("DEA_ID")).intValue());
-			varDealership.setAttName((String) varDealershipMap.get("DEA_NAME"));
-			varDealership.setAttPhone((String) varDealershipMap.get("DEA_PHONE"));
-			varDealership.setAttAddress((String) varDealershipMap.get("DEA_ADDRESS"));
-			varDealership.setAttState((String) varDealershipMap.get("DEA_STATE"));
-
-			return varDealership;
+			List<clsDealership> varList = (List<clsDealership>) varResult.get("return");
+			if (varList == null || varList.isEmpty()) return null;
+			return varList.get(0);
 		} catch (Exception e) {
 			throw new excDatabaseException(e.getMessage());
 		}
-	}
+}
 
 	public List<clsDealership> opGetAllDealership(){
 		try {

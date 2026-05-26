@@ -44,7 +44,7 @@ public class VehicleRepository {
 		this.attFnVehicleExist = new SimpleJdbcCall(attJdbcTemplate).withCatalogName(attPkg)
 				.withFunctionName("FN_VEHICLE_EXIST");
 		this.attFnGetVehicleById = new SimpleJdbcCall(attJdbcTemplate).withCatalogName(attPkg)
-				.withFunctionName("FN_GET_VEHICLE_BY_ID");
+				.withFunctionName("FN_GET_VEHICLE_BY_ID").returningResultSet("return", opVehicleRowMapper());
 		this.attFnGetAllVehicles = new SimpleJdbcCall(attJdbcTemplate).withCatalogName(attPkg)
 				.withFunctionName("FN_GET_ALL_VEHICLES").returningResultSet("return", opVehicleRowMapper());
 	}
@@ -148,34 +148,23 @@ public class VehicleRepository {
 
 	public boolean  opVehicleExist(int prmId){
 		try {
-			Number varResult = attFnVehicleExist.executeFunction(Number.class,opToId(prmId));
-			return varResult != null && varResult.intValue() == 1;
+			Boolean varResult = attFnVehicleExist.executeFunction(Boolean.class,opToId(prmId));
+			return Boolean.TRUE.equals(varResult);
 		} catch (Exception e) {
 			throw new excDatabaseException(e.getMessage());
 		}
 	}
 
 	public clsVehicle  opGetVehicleById(int prmId){
-
-		clsVehicle varVehicle = new clsVehicle();
 		try {
-			Map<String,Object> varResult = attFnGetVehicleById.execute(opToId(prmId));
+			Map<String, Object> varResult = attFnGetVehicleById.execute(opToId(prmId));
 			@SuppressWarnings("unchecked")
-			Map<String, Object> varVehicleMap = (Map<String, Object>) varResult.get("return");
-			if(varVehicleMap == null )return null;
-			varVehicle.setAttVehicleId(((Number)varVehicleMap.get("VEH_ID")).intValue());
-			varVehicle.setAttYear(((Number)varVehicleMap.get("VEH_YEAR")).intValue());
-			varVehicle.setAttBodyType((String)varVehicleMap.get("VEH_BODY_TYPE"));
-			varVehicle.setAttBrand((String)varVehicleMap.get("VEH_BRAND"));
-			varVehicle.setAttCategory((String)varVehicleMap.get("VEH_CATEGORY"));
-			varVehicle.setAttFuelType((String)varVehicleMap.get("VEH_FUEL_TYPE"));
-			varVehicle.setAttModel((String)varVehicleMap.get("VEH_MODEL"));
-			varVehicle.setAttState((String)varVehicleMap.get("VEH_STATE"));
+			List<clsVehicle> varList = (List<clsVehicle>) varResult.get("return");
+			if (varList == null || varList.isEmpty()) return null;
+			return varList.get(0);
 		} catch (Exception e) {
 			throw new excDatabaseException(e.getMessage());
 		}
-
-		return varVehicle;
 	}
 
 	public List<clsVehicle>  opGetAllVehicles(){

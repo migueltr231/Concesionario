@@ -2,7 +2,6 @@ package edu.unicauca.dsantiago135.concesionaria.Repository;
 
 import java.util.List;
 import java.util.Map;
-import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -51,7 +50,7 @@ public class SaleRepository {
 		this.attFnSaleExist = new SimpleJdbcCall(attJdbcTemplate).withCatalogName(attPkg)
 				.withFunctionName("FN_SALE_EXIST");
 		this.attFnGetSaleById = new SimpleJdbcCall(attJdbcTemplate).withCatalogName(attPkg)
-				.withFunctionName("FN_GET_SALE_BY_ID");
+				.withFunctionName("FN_GET_SALE_BY_ID").returningResultSet("return",opSaleRowMapper());
 		this.attFnGetSalesByStatus = new SimpleJdbcCall(attJdbcTemplate).withCatalogName(attPkg)
 				.withFunctionName("FN_GET_SALES_BY_STATUS").returningResultSet("return",opSaleRowMapper());
 		this.attFnGetAllSales = new SimpleJdbcCall(attJdbcTemplate).withCatalogName(attPkg)
@@ -179,39 +178,24 @@ public class SaleRepository {
 	
 	public boolean opSaleExist(int prmId){
 		try {
-			Number varResult = attFnSaleExist.executeFunction(Number.class,opToId(prmId));
-			return varResult != null && varResult.intValue() == 1;
+			Boolean varResult = attFnSaleExist.executeFunction(Boolean.class,opToId(prmId));
+			return Boolean.TRUE.equals(varResult);
 		} catch (Exception e) {
 			throw new excDatabaseException(e.getMessage());
 		}
 	}
 	
 	public clsSale opGetSaleById(int prmId){
-		clsSale varSale = new clsSale();
 		try {
 			Map<String, Object> varResult = attFnGetSaleById.execute(opToId(prmId));
 			@SuppressWarnings("unchecked")
-			Map<String, Object> varMapSale = (Map<String, Object>) varResult.get("return");
-			if(varMapSale == null )return null;
-			varSale.setAttSaleId(((Number)(varMapSale.get("SALE_ID"))).intValue());
-			clsCustomer varCustomer = new clsCustomer();
-			varCustomer.setAttCustomerId(((Number)(varMapSale.get("CUS_ID"))).intValue());
-			clsEmployee varEmployee = new clsEmployee();
-			varEmployee.setAttEmployeeId(((Number)(varMapSale.get("EMP_ID"))).intValue());
-			clsUnit varUnit = new clsUnit();
-			varUnit.setAttUnitId(((Number)(varMapSale.get("UNIT_ID"))).intValue());
-			varSale.setAttEmployee(varEmployee);
-			varSale.setAttCustomer(varCustomer);
-			varSale.setAttUnit(varUnit);
-			varSale.setAttDateEnd((Date)(varMapSale.get("SALE_DATE_END")));
-			varSale.setAttDateStart((Date)(varMapSale.get("SALE_DATE_START")));
-			varSale.setAttStatus((String)(varMapSale.get("SALE_STATUS")));
-			varSale.setAttPrice(((Number)(varMapSale.get("SALE_PRICE"))).doubleValue());
+			List<clsSale> varList = (List<clsSale>) varResult.get("return");
+			if (varList == null || varList.isEmpty()) return null;
+			return varList.get(0);
 		} catch (Exception e) {
 			throw new excDatabaseException(e.getMessage());
 		}
-		return varSale;
-	}
+}
 	
 	public List<clsSale> opGetAllSales(){
 		try {

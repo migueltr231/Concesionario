@@ -43,7 +43,7 @@ public class CustomerRepository {
 		this.attFnCustomerExist = new SimpleJdbcCall(attJdbcTemplate).withCatalogName(attPkg)
 				.withFunctionName("FN_CUSTOMER_EXIST");
 		this.attFnGetCustomerById = new SimpleJdbcCall(attJdbcTemplate).withCatalogName(attPkg)
-				.withFunctionName("FN_GET_CUSTOMER_BY_ID");
+				.withFunctionName("FN_GET_CUSTOMER_BY_ID").returningResultSet("return", opCustomerRowMapper());
 		this.attFnGetAllCustomers = new SimpleJdbcCall(attJdbcTemplate).withCatalogName(attPkg)
 				.withFunctionName("FN_GET_ALL_CUSTOMERS").returningResultSet("return", opCustomerRowMapper());
 	}
@@ -134,8 +134,8 @@ public class CustomerRepository {
 
 	public boolean opCustomerExist(int prmId)  {
 		try {
-			Number varResult = attFnCustomerExist.executeFunction(Number.class, opToId(prmId));
-			return varResult != null && varResult.intValue() == 1;
+			Boolean varResult = attFnCustomerExist.executeFunction(Boolean.class, opToId(prmId));
+			return Boolean.TRUE.equals(varResult);
 		} catch (Exception e) {
 			throw new excDatabaseException(e.getMessage());
 		}
@@ -143,21 +143,15 @@ public class CustomerRepository {
 
 	public clsCustomer opGetCustomerById(int prmId){
 		try {
-		Map<String, Object> varResult =attFnGetCustomerById.execute(opToId(prmId));
-		@SuppressWarnings("unchecked")
-		Map<String, Object> varCustomerMap = (Map<String, Object>) varResult.get("return");
-		if(varCustomerMap == null )return null;
-		clsCustomer varCustomer = new clsCustomer();
-		varCustomer.setAttCustomerId(((Number) varCustomerMap.get("CUS_ID")).intValue());
-		varCustomer.setAttName((String) varCustomerMap.get("CUS_NAME"));
-		varCustomer.setAttPhone((String) varCustomerMap.get("CUS_PHONE"));
-		varCustomer.setAttEmail((String) varCustomerMap.get("CUS_EMAIL"));
-		varCustomer.setAttState((String) varCustomerMap.get("CUS_STATE"));
-		return varCustomer;
+			Map<String, Object> varResult = attFnGetCustomerById.execute(opToId(prmId));
+			@SuppressWarnings("unchecked")
+			List<clsCustomer> varList = (List<clsCustomer>) varResult.get("return");
+			if (varList == null || varList.isEmpty()) return null;
+			return varList.get(0);
 		} catch (Exception e) {
 			throw new excDatabaseException(e.getMessage());
 		}
-	}
+}
 
 	public List<clsCustomer> opGetAllCustomers() {
 		try {
@@ -170,5 +164,4 @@ public class CustomerRepository {
 		}
 	}
 	// endregion
-
 }

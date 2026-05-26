@@ -2,7 +2,6 @@ package edu.unicauca.dsantiago135.concesionaria.Repository;
 
 import java.util.List;
 import java.util.Map;
-import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -46,7 +45,7 @@ public class UnitRepository {
 		this.attFnUnitExist = new SimpleJdbcCall(attJdbcTemplate).withCatalogName(attPkg)
 				.withFunctionName("FN_UNIT_EXIST");
 		this.attFnGetUnitById = new SimpleJdbcCall(attJdbcTemplate).withCatalogName(attPkg)
-				.withFunctionName("FN_GET_UNIT_BY_ID");
+				.withFunctionName("FN_GET_UNIT_BY_ID").returningResultSet("return", opUnitRowMapper());
 		this.attFnGetUnitsByStatus = new SimpleJdbcCall(attJdbcTemplate).withCatalogName(attPkg)
 				.withFunctionName("FN_UNITS_BY_STATUS").returningResultSet("return", opUnitRowMapper());
 		this.attFnGetAllUnits = new SimpleJdbcCall(attJdbcTemplate).withCatalogName(attPkg)
@@ -163,37 +162,23 @@ public class UnitRepository {
 	
 	public boolean opUnitExist(int prmId){
 		try {
-			Number varResult = attFnUnitExist.executeFunction(Number.class,opToId(prmId));
-			return varResult != null && varResult.intValue() == 1;
+			Boolean varResult = attFnUnitExist.executeFunction(Boolean.class,opToId(prmId));
+			return Boolean.TRUE.equals(varResult);
 		} catch (Exception e) {
 			throw new excDatabaseException(e.getMessage());
 		}
 	}
 	
 	public clsUnit opGetUnitById(int prmId){
-		clsUnit varUnit = new clsUnit();
 		try {
 			Map<String, Object> varResult = attFnGetUnitById.execute(opToId(prmId));
 			@SuppressWarnings("unchecked")
-			Map<String, Object> varMapUnit = (Map<String,Object>) varResult.get("return");
-			if(varMapUnit == null )return null;
-			varUnit.setAttUnitId(((Number) varMapUnit.get("UNIT_ID")).intValue());
-			clsDealership varDealership = new clsDealership();
-			varDealership.setAttDealershipId(((Number) varMapUnit.get("DEA_ID")).intValue());
-			varUnit.setAttDealership(varDealership);
-
-			clsVehicle varVehicle = new clsVehicle();
-			varVehicle.setAttVehicleId(((Number) varMapUnit.get("VEH_ID")).intValue());
-			varUnit.setAttVehicle(varVehicle);	
-			varUnit.setAttLicensePlate((String) varMapUnit.get("UNIT_LICENSE_PLATE"));
-			varUnit.setAttColor((String) varMapUnit.get("UNIT_COLOR"));
-			varUnit.setAttMileage(((Number) varMapUnit.get("UNIT_MILEAGE")).intValue());
-			varUnit.setAttDateEntry((Date) varMapUnit.get("UNIT_DATE_ENTRY"));
-			varUnit.setAttCondition((String) varMapUnit.get("UNIT_CONDITION"));					varUnit.setAttStatus((String) varMapUnit.get("UNIT_STATUS"));
+			List<clsUnit> varList = (List<clsUnit>) varResult.get("return");
+			if (varList == null || varList.isEmpty()) return null;
+			return varList.get(0);
 		} catch (Exception e) {
 			throw new excDatabaseException(e.getMessage());
 		}
-		return varUnit;
 	}
 	
 	public List<clsUnit> opGetAllUnits(){

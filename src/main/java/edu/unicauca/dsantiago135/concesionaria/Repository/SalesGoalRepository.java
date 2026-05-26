@@ -2,7 +2,6 @@ package edu.unicauca.dsantiago135.concesionaria.Repository;
 
 import java.util.List;
 import java.util.Map;
-import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -49,7 +48,7 @@ public class SalesGoalRepository {
 		this.attFnSalesGoalExist = new SimpleJdbcCall(attJdbcTemplate).withCatalogName(attPkg)
 				.withFunctionName("FN_SALESGOAL_EXIST");
 		this.attFnGetSalesGoalById = new SimpleJdbcCall(attJdbcTemplate).withCatalogName(attPkg)
-				.withFunctionName("FN_GET_SALESGOAL_BY_ID");
+				.withFunctionName("FN_GET_SALESGOAL_BY_ID").returningResultSet("return",opSalesGoalRowMapper());
 		this.attFnGetSalesGoalsByState = new SimpleJdbcCall(attJdbcTemplate).withCatalogName(attPkg)
 				.withFunctionName("FN_GET_SALESGOALS_BY_STATE").returningResultSet("return",opSalesGoalRowMapper());
 		this.attFnGetAllSalesGoals = new SimpleJdbcCall(attJdbcTemplate).withCatalogName(attPkg)
@@ -170,38 +169,24 @@ public class SalesGoalRepository {
 	
 	public boolean opSalesGoalExist(int prmId){
 		try {
-			Number varResult = attFnSalesGoalExist.executeFunction(Number.class, opToId(prmId));
-			return varResult != null && varResult.intValue() == 1;
+			Boolean varResult = attFnSalesGoalExist.executeFunction(Boolean.class, opToId(prmId));
+			return Boolean.TRUE.equals(varResult);
 		} catch (excDatabaseException e) {
 			throw new excDatabaseException(e.getMessage());
 		}
 	}
 	
 	public clsSalesGoal opGetSalesGoalById(int prmId){
-		clsSalesGoal varSalesGoal = new clsSalesGoal();
 		try {
 			Map<String, Object> varResult = attFnGetSalesGoalById.execute(opToId(prmId));
 			@SuppressWarnings("unchecked")
-			Map<String, Object> varMapSalesGoal = (Map<String, Object>) varResult.get("return");
-			if(varMapSalesGoal == null )return null;
-			varSalesGoal.setAttSalesGoalId(((Number)(varMapSalesGoal.get("SGL_ID"))).intValue());
-			clsDealership varDealership = new clsDealership();
-			varDealership.setAttDealershipId(((Number)(varMapSalesGoal.get("DEA_ID"))).intValue());
-			clsEmployee varEmployee = new clsEmployee();
-			varEmployee.setAttEmployeeId(((Number)(varMapSalesGoal.get("EMP_ID"))).intValue());
-			varSalesGoal.setAttDealership(varDealership);
-			varSalesGoal.setAttEmployee(varEmployee);
-			
-			varSalesGoal.setAttStartDate((Date)(varMapSalesGoal.get("SGL_START_DATE")));
-			varSalesGoal.setAttEndDate((Date)(varMapSalesGoal.get("SGL_END_DATE")));
-			varSalesGoal.setAttGoalType((String)(varMapSalesGoal.get("SGL_GOAL_TYPE")));
-			varSalesGoal.setAttState((String)(varMapSalesGoal.get("SGL_STATE")));
-			varSalesGoal.setAttTargetValue(((Number)(varMapSalesGoal.get("SGL_TARGET_VALUE"))).doubleValue());
-		} catch (excDatabaseException e) {
+			List<clsSalesGoal> varList = (List<clsSalesGoal>) varResult.get("return");
+			if (varList == null || varList.isEmpty()) return null;
+			return varList.get(0);
+		} catch (Exception e) {
 			throw new excDatabaseException(e.getMessage());
 		}
-		return varSalesGoal;
-	}
+}
 	
 	public List<clsSalesGoal> opGetAllSalesGoals(){
 		try {

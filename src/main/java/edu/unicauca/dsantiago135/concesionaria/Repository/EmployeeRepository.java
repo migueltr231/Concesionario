@@ -1,6 +1,5 @@
 package edu.unicauca.dsantiago135.concesionaria.Repository;
 
-import java.sql.Date;
 import java.util.List;
 import java.util.Map;
 import java.sql.ResultSet;
@@ -46,7 +45,7 @@ public class EmployeeRepository {
 		this.attFnEmployeeExist = new SimpleJdbcCall(attJdbcTemplate).withCatalogName(attPkg)
 				.withFunctionName("FN_EMPLOYEE_EXIST");
 		this.attFnGetEmployeeById = new SimpleJdbcCall(attJdbcTemplate).withCatalogName(attPkg)
-				.withFunctionName("FN_GET_EMPLOYEE_BY_ID");
+				.withFunctionName("FN_GET_EMPLOYEE_BY_ID").returningResultSet("return", opEmployeeRowMapper());
 		this.attFnGetEmployeesByDealership = new SimpleJdbcCall(attJdbcTemplate).withCatalogName(attPkg)
 				.withFunctionName("FN_GET_EMPLOYEES_BY_DEALERSHIP").returningResultSet("return", opEmployeeRowMapper());
 		this.attFnGetEmployeesAboveAvg = new SimpleJdbcCall(attJdbcTemplate).withCatalogName(attPkg)
@@ -157,8 +156,8 @@ public class EmployeeRepository {
 
 	public boolean opEmployeeExist(int prmId){
 		try {
-			Number varResult = attFnEmployeeExist.executeFunction(Number.class, opToId(prmId));
-			return varResult != null && varResult.intValue() == 1;
+			Boolean varResult = attFnEmployeeExist.executeFunction(Boolean.class, opToId(prmId));
+			return Boolean.TRUE.equals(varResult);
 		} catch (excDatabaseException e) {
 			throw new excDatabaseException(e.getMessage());
 		}
@@ -166,23 +165,12 @@ public class EmployeeRepository {
 
 	public clsEmployee opGetEmployeeById(int prmId){
 		try {
-			clsEmployee varEmployee = new clsEmployee();
 			Map<String, Object> varResult = attFnGetEmployeeById.execute(opToId(prmId));
 			@SuppressWarnings("unchecked")
-			Map<String, Object> varEmployeeData = (Map<String, Object>) varResult.get("return");
-			if(varEmployeeData == null )return null;
-			varEmployee.setAttEmployeeId(((Number)varEmployeeData.get("EMP_ID")).intValue());
-			clsDealership varDealership = new clsDealership();
-			varDealership.setAttDealershipId(((Number)varEmployeeData.get("DEA_ID")).intValue());
-			varEmployee.setAttDealership(varDealership);
-			varEmployee.setAttName((String)varEmployeeData.get("EMP_NAME"));
-			varEmployee.setAttPhone((String)varEmployeeData.get("EMP_PHONE"));
-			varEmployee.setAttRole((String)varEmployeeData.get("EMP_ROLE"));
-			varEmployee.setAttSalary(((Number)varEmployeeData.get("EMP_SALARY")).doubleValue());
-			varEmployee.setAttState((String)varEmployeeData.get("EMP_STATE"));
-			varEmployee.setAttHireDate((Date)varEmployeeData.get("EMP_HIRE_DATE"));
-			return varEmployee;
-		} catch (excDatabaseException e) {
+			List<clsEmployee> varList = (List<clsEmployee>) varResult.get("return");
+			if (varList == null || varList.isEmpty()) return null;
+			return varList.get(0);
+		} catch (Exception e) {
 			throw new excDatabaseException(e.getMessage());
 		}
 	}
