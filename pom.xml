@@ -65,6 +65,16 @@
 			<artifactId>spring-boot-starter-webmvc-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>org.openjfx</groupId>
+			<artifactId>javafx-controls</artifactId>
+			<version>17</version>
+		</dependency>
+		<dependency>
+			<groupId>org.openjfx</groupId>
+			<artifactId>javafx-fxml</artifactId>
+			<version>17</version>
+		</dependency>
 	</dependencies>
 
 	<build>
@@ -116,6 +126,17 @@
 						</configuration>
 					</execution>
 				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.openjfx</groupId>
+				<artifactId>javafx-maven-plugin</artifactId>
+				<version>0.0.8</version>
+				
+				<configuration>
+					<mainClass>
+						edu.unicauca.dsantiago135.concesionaria.ConcesionariaApplication
+					</mainClass>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>
