@@ -36,6 +36,8 @@ public class LoginController {
 		String pass = txtPassword.getText();
 
 		clsEmployee user = authService.login(id, pass);
+		
+		System.out.println("USER: " + user);
 
 		SessionManager.setUser(user);
 		SceneManager.switchScene("dashboard.fxml");

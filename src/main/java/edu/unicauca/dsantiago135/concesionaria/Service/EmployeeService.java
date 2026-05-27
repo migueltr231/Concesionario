@@ -144,15 +144,19 @@ public class EmployeeService {
 
    // region FUNCTIONS
    public clsEmployee opGetEmployeeById(int prmId) {
-      if(!attEmployeeRepository.opEmployeeExist(prmId)) throw new excNotFoundException("Empleado no encontrado");
+	  clsEmployee varEmployee = attEmployees.get(prmId);
+	  
+	  if (varEmployee != null)
+	        return varEmployee;
 
-      clsEmployee varEmployee = attEmployees.get(prmId);
-      if (varEmployee != null)
-         return varEmployee;
+	    varEmployee = opFetchFromDB(prmId);
 
-      varEmployee = opFetchFromDB(prmId);
-      attEmployees.put(prmId, varEmployee);
-      return varEmployee;
+	    if (varEmployee == null)
+	        throw new excNotFoundException("Empleado no encontrado");
+
+	    attEmployees.put(prmId, varEmployee);
+
+	    return varEmployee;      
    }
 
    public List<clsEmployee> opGetEmployeesByDealership(int prmDealershipId) {
