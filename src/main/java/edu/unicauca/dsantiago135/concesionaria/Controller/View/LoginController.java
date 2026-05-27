@@ -2,6 +2,10 @@ package edu.unicauca.dsantiago135.concesionaria.Controller.View;
 
 import org.springframework.stereotype.Component;
 
+import edu.unicauca.dsantiago135.concesionaria.Model.clsEmployee;
+import edu.unicauca.dsantiago135.concesionaria.Service.AuthService;
+import edu.unicauca.dsantiago135.concesionaria.UI.SceneManager;
+import edu.unicauca.dsantiago135.concesionaria.UI.SessionManager;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
@@ -10,29 +14,30 @@ import javafx.scene.control.TextField;
 @Component
 public class LoginController {
 
+	private final AuthService authService;
+
+	public LoginController(AuthService authService) {
+		this.authService = authService;
+	}
+
 	@FXML
 	private TextField txtUsuario;
-	
+
 	@FXML
-    private PasswordField txtPassword;
+	private PasswordField txtPassword;
 
-    @FXML
-    private Label lblMensaje;
+	@FXML
+	private Label lblMensaje;
 
-    @FXML
-    public void iniciarSesion() {
+	@FXML
+	public void iniciarSesion() {
 
-        String usuario = txtUsuario.getText();
-        String password = txtPassword.getText();
+		int id = Integer.parseInt(txtUsuario.getText());
+		String pass = txtPassword.getText();
 
-        if(usuario.equals("admin")
-                && password.equals("1234")) {
+		clsEmployee user = authService.login(id, pass);
 
-            lblMensaje.setText("Bienvenido");
-
-        } else {
-
-            lblMensaje.setText("Credenciales incorrectas");
-        }
-    }
+		SessionManager.setUser(user);
+		SceneManager.switchScene("dashboard.fxml");
+	}
 }

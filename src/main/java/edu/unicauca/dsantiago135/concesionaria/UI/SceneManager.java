@@ -6,7 +6,9 @@ import org.springframework.stereotype.Component;
 
 import edu.unicauca.dsantiago135.concesionaria.ConcesionariaApplication;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 
 @Component
@@ -18,21 +20,55 @@ public class SceneManager {
         mainStage = stage;
     }
 
-	public static void switchScene(String fxml) throws IOException {
+	public static void switchScene(String fxml){
 		
-		FXMLLoader loader = new FXMLLoader(
-			SceneManager.class.getResource(
-				"/concesionaria/fxml/" + fxml
-			)
-		);
+		try {
+			FXMLLoader loader = new FXMLLoader(
+					SceneManager.class.getResource(
+						"/concesionaria/fxml/" + fxml
+					)
+				);
+				
+				loader.setControllerFactory(
+		                ConcesionariaApplication.context::getBean
+		        );
+				
+				Scene scene = new Scene(loader.load());
+				
+				mainStage.setScene(scene);
+				mainStage.show();
+		} catch(IOException e) {
+			e.printStackTrace();
+		}
 		
-		loader.setControllerFactory(
-                ConcesionariaApplication.context::getBean
-        );
-		
-		Scene scene = new Scene(loader.load());
-		
-		mainStage.setScene(scene);
-		mainStage.show();
 	}
+	
+	// Cargar vista central
+	public static void loadView(
+            StackPane contentArea,
+            String fxml) {
+
+        try {
+
+            FXMLLoader loader = new FXMLLoader(
+                SceneManager.class.getResource(
+                    "/concesionaria/fxml/" + fxml
+                )
+            );
+
+            loader.setControllerFactory(
+                ConcesionariaApplication.context::getBean
+            );
+
+            Parent view = loader.load();
+
+            contentArea.getChildren().clear();
+
+            contentArea.getChildren().add(view);
+
+        } catch (IOException e) {
+
+            e.printStackTrace();
+        }
+    }
 }

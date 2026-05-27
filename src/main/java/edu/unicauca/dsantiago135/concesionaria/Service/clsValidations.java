@@ -155,4 +155,5 @@ public class clsValidations {
       if (prmValue.length() < prmMin || prmValue.length() > prmMax)
          throw new excValidationException("Error: " + prmField + " fuera del rango");
    }
+   
 }

@@ -199,8 +199,8 @@ CREATE TABLE TBL_VEHICLE
    VEH_MODEL            VARCHAR2 (25)        NOT NULL,
    VEH_YEAR             NUMBER,
    VEH_BODY_TYPE        VARCHAR2(25)         NOT NULL,
-   VEH_FUEL_TYPE_       VARCHAR2(8)          NOT NULL
-      CONSTRAINT CKC_VEH_FUEL_TYPE__TBL_VEHI CHECK (VEH_FUEL_TYPE_ IN ('electric','gasoline','hybrid')),
+   VEH_FUEL_TYPE        VARCHAR2(8)          NOT NULL
+      CONSTRAINT CKC_VEH_FUEL_TYPE_TBL_VEHI CHECK (VEH_FUEL_TYPE IN ('electric','gasoline','hybrid')),
    VEH_CATEGORY         VARCHAR2(8)          NOT NULL
       CONSTRAINT CKC_VEH_CATEGORY_TBL_VEHI CHECK (VEH_CATEGORY IN ('standard','luxury')),
    VEH_STATE            VARCHAR2(10),

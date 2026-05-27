@@ -7,6 +7,7 @@
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
 
 <AnchorPane xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="edu.unicauca.dsantiago135.concesionaria.Controller.View.LoginController">
 	
@@ -17,6 +18,13 @@
         <padding>
                 <Insets bottom="20" left="20" right="20" top="20" />
             </padding>
+         <Label prefHeight="34.0" prefWidth="279.0" text="APP DE CONCESIONARIO">
+            <font>
+               <Font name="Cascadia Code Regular" size="23.0" />
+            </font>
+         </Label>
+
+            <Label fx:id="lblMensaje" />
 
             <Label text="INICIAR SESIÓN" />
 
@@ -25,8 +33,6 @@
             <PasswordField fx:id="txtPassword" promptText="Contraseña" />
 
             <Button onAction="#iniciarSesion" text="Ingresar" />
-
-            <Label fx:id="lblMensaje" />
               
         </VBox>              
 		
